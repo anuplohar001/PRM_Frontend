@@ -1,6 +1,6 @@
 import React, { useState } from "react"
-import { signupApi } from "../../services/auth.services"
-
+import { apiRequest } from "../../services/api.services"
+import { Link, useNavigate } from "react-router-dom"
 type SignupForm = {
   name: string
   email: string
@@ -9,6 +9,7 @@ type SignupForm = {
 }
 
 const Signup: React.FC = () => {
+  const navigate = useNavigate()
   const [form, setForm] = useState<SignupForm>({
     name: "",
     email: "",
@@ -31,13 +32,19 @@ const Signup: React.FC = () => {
       return
     }
 
-    try {
-      const res = await signupApi({...form})
-
-      console.log("Signup success", res)
-    } catch (err: any) {
-      alert(err.message)
-    }
+     try {
+          await apiRequest({
+            body:{...form},
+            method:"POST",
+            endpoint:"/users/create"
+          })
+          navigate('/login')
+        } catch (err:unknown) {
+          if (err && typeof err === 'object' && 'message' in err) {
+            alert(err.message)
+            console.error(err.message)
+          }
+        }
   }
 
   return (
@@ -98,6 +105,12 @@ const Signup: React.FC = () => {
             Sign Up
           </button>
         </form>
+        <div className="mt-3">
+          Already have an account {" "}
+          <Link to={'/login'}>
+            Login
+          </Link>
+        </div>
       </div>
     </div>
   )

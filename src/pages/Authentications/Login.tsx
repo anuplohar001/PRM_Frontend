@@ -1,13 +1,15 @@
 import React, { useState } from "react"
-import { loginApi } from "../../services/auth.services"
 import { apiRequest } from "../../services/api.services"
-
+import { Link, useNavigate } from "react-router-dom"
 type LoginForm = {
   email: string
   password: string
 }
 
 const Login: React.FC = () => {
+
+  localStorage.clear()
+  const navigate = useNavigate()
   const [form, setForm] = useState<LoginForm>({
     email: "",
     password: ""
@@ -24,13 +26,21 @@ const Login: React.FC = () => {
     e.preventDefault()
 
     try {
-      const res:unknown = await apiRequest({
-        body:{...form},
-        method:"POST",
-        endpoint:"/users/login"
+      const res: unknown = await apiRequest({
+        body: { ...form },
+        method: "POST",
+        endpoint: "/users/login"
       })
-    } catch (err: Error) {
-      console.error("Failed to Login. Please try again")
+      if (res && typeof res === 'object' && 'user' in res && 'token' in res) {
+        localStorage.setItem("user", JSON.stringify(res?.user))
+        localStorage.setItem("token", res?.token)
+      }
+      navigate('/')
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'message' in err) {
+        alert(err.message)
+        console.error(err.message)
+      }
     }
   }
 
@@ -68,6 +78,13 @@ const Login: React.FC = () => {
             Login
           </button>
         </form>
+
+        <div className="mt-3">
+          Don't have an account create one {" "}
+          <Link to={'/signup'}>
+            Signup
+          </Link>
+        </div>
       </div>
     </div>
   )
