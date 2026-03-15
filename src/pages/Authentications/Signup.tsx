@@ -1,6 +1,8 @@
 import React, { useState } from "react"
+import { apiRequest } from "../../services/api.services"
+import { Link, useNavigate } from "react-router-dom"
 import { signupApi } from "../../services/auth.services"
-
+import Loader from "../../components/Loader"
 type SignupForm = {
   name: string
   email: string
@@ -9,6 +11,8 @@ type SignupForm = {
 }
 
 const Signup: React.FC = () => {
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<SignupForm>({
     name: "",
     email: "",
@@ -25,23 +29,28 @@ const Signup: React.FC = () => {
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
-
+    setLoading(true)
     if (form.password !== form.confirmPassword) {
       alert("Passwords do not match")
       return
     }
 
     try {
-      const res = await signupApi({...form})
-
-      console.log("Signup success", res)
-    } catch (err: any) {
-      alert(err.message)
+      await signupApi(form)
+      navigate('/login')
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'message' in err) {
+        alert(err.message)
+        console.error(err.message)
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="container vh-100 d-flex justify-content-center align-items-center">
+    <div className="container position-relative vh-100 d-flex justify-content-center align-items-center">
+      <Loader loading={loading}/>
       <div className="card shadow p-4" style={{ width: "420px" }}>
         <h3 className="text-center mb-4">Sign Up</h3>
 
@@ -98,6 +107,12 @@ const Signup: React.FC = () => {
             Sign Up
           </button>
         </form>
+        <div className="mt-3">
+          Already have an account {" "}
+          <Link to={'/login'}>
+            Login
+          </Link>
+        </div>
       </div>
     </div>
   )

@@ -13,8 +13,8 @@ export const apiRequest = async <T>({
     method = "GET",
     endpoint,
     body,
-    token
 }: ApiRequestOptions): Promise<T> => {
+    const token = localStorage.getItem('token')
     const res = await fetch(`${BASE_URL}${endpoint}`, {
         method,
         headers: {
@@ -33,6 +33,30 @@ export const apiRequest = async <T>({
     return data
 }
 
+
+
+export const getRecords = async <T>({
+    endpoint = "/getRecords",
+    body,
+}: ApiRequestOptions): Promise<T> => {
+    const token = localStorage.getItem('token')
+    const res = await fetch(`${BASE_URL}${endpoint}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` })
+        },
+        ...(body ? { body: JSON.stringify(body) } : {})
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+        throw new Error(data.message || "API request failed")
+    }
+
+    return data
+}
 // await apiRequest({
 //     method: "POST",
 //     endpoint: "/users/login",
