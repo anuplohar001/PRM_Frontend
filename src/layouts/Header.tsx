@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 const Header = () => {
     const navigate = useNavigate()
@@ -29,7 +29,9 @@ const Header = () => {
                 <ul className="dropdown-menu dropdown-menu-end">
 
                     <li>
-                        <button className="dropdown-item">Profile</button>
+                        <Link to={'/profile'}>
+                            <button className="dropdown-item">Profile</button>
+                        </Link>
                     </li>
 
                     <li>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { apiRequest, getRecords } from "../../services/api.services"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 
 type Organization = {
     id: string
@@ -24,39 +24,49 @@ type CreateProjectInput = {
 export default function CreateProject() {
 
     const navigate = useNavigate()
+    const organization = JSON.parse(localStorage.getItem('organization'))
+    const { id } = useParams()
+    const [loading, setLoading] = useState(false)
     const [form, setForm] = useState<CreateProjectInput>({
         name: "",
-        organizationId:"",
+        organizationId: organization.id,
         description: "",
         website: "",
         industry: "",
         size: ""
     })
-    const [organizations, setOrganizations] = useState<Organization[]>([])
 
-    const getOrganizations = async () => {
+    const getProject = async () => {
+        setLoading(true)
         try {
-            const user = JSON.parse(localStorage.getItem("user"))
-            const payload = {
-                modelName:'organizations',
-                filters: {
-                    createdById: user?.id
+            const args = {
+                endpoint: '/getRecords',
+                body: {
+                    modelName: 'projects',
+                    filters: { id: id && parseInt(id) },
+                    include: {
+                        createdBy: true
+                    }
                 }
             }
-            const organizations = await getRecords({endpoint:"/getRecords", body: payload})
-            if (organizations && typeof organizations === 'object' && 'data' in organizations) {
-                
-                setOrganizations(organizations?.data as Organization[])
+            const response = await getRecords(args)
+            const project = response.data[0]
+            setForm(project)
+        } catch (err) {
+            if (err && typeof err === 'object' && 'message' in err) {
+                alert(err.message)
+                console.error(err.message)
             }
-        } catch (error) {
-            console.error(error)
+        } finally {
+            setLoading(false)
         }
     }
 
     useEffect(() => {
-      getOrganizations()
-    }, [])
-    
+        if (id) {
+            getProject()
+        }
+    }, [id])
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -69,12 +79,12 @@ export default function CreateProject() {
 
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
-        console.log(form)
         try {
+
             await apiRequest({
-                body: { ...form },
-                method: "POST",
-                endpoint: "/projects/create"
+                body: { id, projectId: id, ...form },
+                method: id ? "PUT" : "POST",
+                endpoint: id ? `/projects/${id}` : "/projects/create"
             })
             navigate('/')
         } catch (err: unknown) {
@@ -91,7 +101,7 @@ export default function CreateProject() {
         <div className="container mt-4">
             <div className="card shadow-sm">
                 <div className="card-header fw-semibold">
-                    Create Project
+                    {id ? "Update" : "Create"} Project
                 </div>
 
                 <div className="card-body">
@@ -112,21 +122,13 @@ export default function CreateProject() {
                         <div className="mb-4">
                             <label className="form-label">Organization</label>
 
-                            <select
-                                name="organizationId"
-                                value={form.organizationId}
-                                onChange={handleChange}
-                                className="form-select"
-                            >
-                                <option value="">Select Organization</option>
-
-                                {organizations?.map((org) => (
-                                    <option key={org?.id} value={org?.id}>
-                                        {org?.name}
-                                    </option>
-                                ))}
-
-                            </select>
+                            <input
+                                name="organization"
+                                value={organization.name}
+                                className="form-control"
+                                required
+                                disabled
+                            />
                         </div>
 
                         <div className="mb-3">
@@ -140,22 +142,23 @@ export default function CreateProject() {
                             />
                         </div>
 
-                       
+
 
 
                         <div className="d-flex justify-content-end gap-2">
                             <button
                                 type="button"
-                                className="btn btn-outline-secondary"
+                                className="btn btn-outline-secondary btn-sm"
+                                onClick={() => navigate('/')}
                             >
                                 Cancel
                             </button>
 
                             <button
                                 type="submit"
-                                className="btn btn-primary"
+                                className="btn btn-primary btn-sm"
                             >
-                                Create Organization
+                                {id ? "Update" : "Create"} Project
                             </button>
                         </div>
 

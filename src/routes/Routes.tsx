@@ -6,6 +6,9 @@ import WorkSpace from "../pages/Home/WorkSpace"
 import CreateOrganization from "../pages/Organization/CreateOrganization"
 import MainLayout from "../layouts/MainLayout"
 import CreateProject from "../pages/Project/CreateProject"
+import Profile from "../pages/Profile/Profile"
+import SuperAdmin from "../pages/SuperAdmin/SuperAdmin"
+import Organization from "../pages/Organization/Organization"
 
 type PrivateRouteProps = {
     children: React.ReactElement
@@ -35,9 +38,14 @@ const AppRoutes = () => {
                     </PrivateRoute>
                 }
             >
+                <Route path="/super-admin-dashboard" element={<SuperAdmin />} />
                 <Route path="/" element={<WorkSpace />} />
+                <Route path="/organization" element={<Organization />} />
+                <Route path="/create-organization" element={<CreateOrganization />} />
                 <Route path="/create-organization" element={<CreateOrganization />} />
                 <Route path="/create-project" element={<CreateProject />} />
+                <Route path="/create-project/:id" element={<CreateProject />} />
+                <Route path="/profile" element={<Profile />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

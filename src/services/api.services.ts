@@ -8,12 +8,13 @@ type ApiRequestOptions = {
 }
 
 const BASE_URL = import.meta.env.VITE_SERVER_BASE_URL
-const token = localStorage.getItem('token')
+
 export const apiRequest = async <T>({
     method = "GET",
     endpoint,
     body,
 }: ApiRequestOptions): Promise<T> => {
+    const token = localStorage.getItem('token')
     const res = await fetch(`${BASE_URL}${endpoint}`, {
         method,
         headers: {
@@ -38,6 +39,7 @@ export const getRecords = async <T>({
     endpoint = "/getRecords",
     body,
 }: ApiRequestOptions): Promise<T> => {
+    const token = localStorage.getItem('token')
     const res = await fetch(`${BASE_URL}${endpoint}`, {
         method: "POST",
         headers: {

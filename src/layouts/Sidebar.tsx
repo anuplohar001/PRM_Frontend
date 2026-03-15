@@ -19,9 +19,11 @@ const Sidebar = () => {
         >
             <div className="list-group list-group-flush">
 
+                <Tab to={'/super-admin-dashboard'} label={'Super Admin Dashboard'} />
                 <Tab to={'/'} label={'WorkSpace'} />
-                <Tab to={'/create-organization'} label={'Create Organization'} />
-                <Tab to={'/create-project'} label={'Create Project'} />
+                <Tab to={'/organization'} label={'Organization'} />
+                {/* <Tab to={'/create-organization'} label={'Create Organization'} />
+                <Tab to={'/create-project'} label={'Create Project'} /> */}
 
             </div>
         </div>

@@ -1,15 +1,8 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
-import { getRecords } from "../../services/api.services"
-
-type Organization = {
-  id: string
-  name: string
-  description: string
-  members: number
-  projects: number
-  role: string
-}
+import { Link, useNavigate } from "react-router-dom"
+import { apiRequest, getRecords } from "../../services/api.services"
+import Loader from "../../components/Loader"
+import AddMemberModal from "../Organization/AddMemberModal"
 
 type Project = {
   id: string
@@ -20,92 +13,109 @@ type Project = {
 
 export default function WorkspaceHome() {
 
-  const [organizations, setOrganizations] = useState<Organization[]>([
-    { id: "1", name: "TechCorp", members: 12, projects: 6, role: "Owner" },
-    { id: "2", name: "StartupHub", members: 5, projects: 2, role: "Admin" }
-  ])
-
-  const [projects] = useState<Project[]>([
-    { id: "1", name: "PRM Tool", organization: "TechCorp", status: "Active" },
-    { id: "2", name: "Website Revamp", organization: "StartupHub", status: "Planning" }
-  ])
-
+  const navigate = useNavigate()
+  const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
-
-
-  const getOrganizations = async () => {
+  const [showModal, setShowModal] = useState(false)
+  const [orgMembers, setOrgMembers] = useState([])
+  const [project, setProject] = useState({})
+  const org = JSON.parse(localStorage.getItem('organization'))
+  const getProjects = async () => {
+    setLoading(true)
     try {
-      const body = {modelName: 'organizations'}
-      const res = await getRecords({
-        body,
-        endpoint: "/getRecords"
-      })
-      if (res && typeof res === 'object' && 'data' in res) {
-        const data = res?.data as Organization[]
-        setOrganizations(data)
+      const args = {
+        endpoint: '/getRecords',
+        body: {
+          modelName: 'projects',
+          filters: { organizationId: org.id },
+          include: {
+            createdBy: true
+          }
+        }
       }
-      
-    } catch (error) {
-      console.error(error)
+      const response = await getRecords(args)
+      setProjects(response?.data)
+    } catch (err) {
+      if (err && typeof err === 'object' && 'message' in err) {
+        alert(err.message)
+        console.error(err.message)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getOrgMembers = async () => {
+    setLoading(true)
+    try {
+      const args = {
+        endpoint: '/getRecords',
+        body: {
+          modelName: 'organizationMembers',
+          filters: { organizationId: org.id },
+          include: {
+            user: true
+          }
+        }
+      }
+      const response = await getRecords(args)
+      const users = response?.data.map((m) => m.user)
+      setOrgMembers(users)
+    } catch (err) {
+      if (err && typeof err === 'object' && 'message' in err) {
+        alert(err.message)
+        console.error(err.message)
+      }
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    getOrganizations()
+    getProjects()
+    getOrgMembers()
   }, [])
-  
+
+
+  const handleAddProjMember = async (user: object) => {
+    console.log(project)
+    setLoading(true)
+    try {
+      await apiRequest({
+        endpoint: '/projects/add-member',
+        method: "POST",
+        body: { projectId: project?.id, memberId: user.id }
+      })
+    } catch (err) {
+      if (err && typeof err === 'object' && 'message' in err) {
+        alert(err.message)
+        console.error(err.message)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
 
   return (
-    <div className="container-fluid mt-4">
-
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3>Workspace Dashboard</h3>       
+    <div className="container-fluid mt-1 position-relative">
+      <Loader loading={loading} />
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <h3>Workspace Dashboard</h3>
       </div>
 
       <div className="row">
 
-        {/* Organizations */}
-        <div className="col-lg-6 mb-4">
-          <div className="card shadow-sm">
-            <div className="card-header fw-semibold">
-              Your Organizations
-            </div>
 
-            <div className="card-body p-0">
-              <table className="table mb-0">
-                <thead className="table-light">
-                  <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Projects</th>
-                    <th>Role</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {organizations.map(org => (
-                    <tr key={org.id}>
-                      <td>{org.name}</td>
-                      <td>{org.description}</td>
-                      <td>{org.projects}</td>
-                      <td>
-                        <span className="badge bg-secondary">
-                          {org.role}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-
-              </table>
-            </div>
-          </div>
-        </div>
 
         {/* Projects */}
-        <div className="col-lg-6 mb-4">
+        <div className="col-12 mb-4">
+          <div className="d-flex justify-content-end">
+            <button className="btn-primary btn-sm btn mb-2" onClick={() => navigate('/create-project')}>
+              + Create Project
+            </button>
+          </div>
+
           <div className="card shadow-sm">
             <div className="card-header fw-semibold">
               Recent Projects
@@ -117,7 +127,9 @@ export default function WorkspaceHome() {
                   <tr>
                     <th>Project</th>
                     <th>Organization</th>
+                    <th>Created By</th>
                     <th>Status</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
 
@@ -125,11 +137,20 @@ export default function WorkspaceHome() {
                   {projects.map(project => (
                     <tr key={project.id}>
                       <td>{project.name}</td>
-                      <td>{project.organization}</td>
+                      <td>{org.name}</td>
+                      <td>{project.createdBy.name}</td>
                       <td>
                         <span className="badge bg-success">
                           {project.status}
                         </span>
+                      </td>
+                      <td>
+                        <button className="btn btn-sm btn-success"
+                          onClick={() => {
+                            setShowModal(true)
+                            setProject(project)
+                          }}>Add Member</button>
+                        <button className="btn btn-sm btn-primary" onClick={() => navigate(`/create-project/${project.id}`)}>Edit</button>
                       </td>
                     </tr>
                   ))}
@@ -143,7 +164,7 @@ export default function WorkspaceHome() {
       </div>
 
       {/* Recent Activity */}
-      <div className="card shadow-sm">
+      {/* <div className="card shadow-sm">
         <div className="card-header fw-semibold">
           Recent Activity
         </div>
@@ -165,7 +186,15 @@ export default function WorkspaceHome() {
 
           </ul>
         </div>
-      </div>
+      </div> */}
+
+      <AddMemberModal
+        users={orgMembers}
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        orgName={project?.name}
+        onAdd={handleAddProjMember}
+      />
 
     </div>
   )
