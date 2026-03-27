@@ -31,11 +31,19 @@ const Login: React.FC = () => {
         method: "POST",
         endpoint: "/users/login"
       })
+      console.log({res})
       if (res && typeof res === 'object' && 'user' in res && 'token' in res) {
         localStorage.setItem("user", JSON.stringify(res?.user))
-        localStorage.setItem("token", res?.token)
+        localStorage.setItem("token", res?.token)        
       }
-      navigate('/')
+      if (res && typeof res === 'object' && 'organization' in res && res?.organization.length) {
+        const org = { ...res?.organization[0].organization, role: res?.organization[0].role }
+        localStorage.setItem('organization', JSON.stringify(org))
+        navigate("/")
+      } else {
+        navigate("/create-organization")
+      }
+      // navigate('/select-organization')
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'message' in err) {
         alert(err.message)
