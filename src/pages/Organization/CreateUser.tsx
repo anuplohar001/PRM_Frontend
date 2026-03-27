@@ -1,26 +1,27 @@
 import { useState } from "react"
 import { apiRequest } from "../../services/api.services"
 import { useNavigate } from "react-router-dom"
+import { useApi } from "../../utils/useApi"
+import Loader from "../../components/Loader"
 
-type CreateOrganizationInput = {
+type CreateUserInput = {
     name: string
-    slug?: string
-    description: string
-    website: string
-    industry: string
-    size: string
+    email: string
+    description?: string
+    password: string
+    confirmPassword: string
 }
 
-export default function CreateOrganization() {
+export default function CreateUser() {
 
     const navigate = useNavigate()
-    const [form, setForm] = useState<CreateOrganizationInput>({
+    const organizationId = JSON.parse(localStorage.getItem('organization'))?.id
+    const [form, setForm] = useState<CreateUserInput>({
         name: "",
-        slug: "",
+        email: "",
         description: "",
-        website: "",
-        industry: "",
-        size: ""
+        password: "",
+        confirmPassword: ""
     })
 
     const handleChange = (
@@ -32,35 +33,32 @@ export default function CreateOrganization() {
         }))
     }
 
+    const { callApi: createUser, loading: creatingUser } = useApi()
+
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
-
-        try {
-            const response = await apiRequest({
-                body: { ...form },
+        createUser(
+            apiRequest,
+            {
+                endpoint: "/organizations/create-user",
                 method: "POST",
-                endpoint: "/organizations/create"
-            })
-            const data = response?.data
-            const org = { ...data?.organization.organization, role: data?.organization.role }
-            localStorage.setItem('organization', JSON.stringify(org))
-            navigate('/')
-        } catch (err: unknown) {
-            if (err && typeof err === 'object' && 'message' in err) {
-                alert(err.message)
+                body: { ...form, organizationId },
+            },
+            (response) => {
+                navigate('/organization')
+            },
+            (err) => {
                 console.error(err.message)
             }
-        }
-
-        // call api
+        )
     }
 
     return (
         <div className="container mt-4">
-
+            <Loader loading={creatingUser} />
             <div className="card shadow-sm">
                 <div className="card-header fw-semibold">
-                    Create Organization
+                    Create User
                 </div>
 
                 <div className="card-body">
@@ -68,25 +66,27 @@ export default function CreateOrganization() {
                     <form onSubmit={handleSubmit} noValidate>
 
                         <div className="mb-3">
-                            <label className="form-label">Organization Name</label>
+                            <label className="form-label">Full Name</label>
                             <input
                                 name="name"
                                 value={form.name}
                                 onChange={handleChange}
                                 className="form-control"
                                 required
+                                placeholder="Full Name"
                             />
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">Slug</label>
+                            <label className="form-label">Email</label>
                             <input
-                                name="slug"
-                                value={form.slug}
+                                name="email"
+                                value={form.email}
                                 onChange={handleChange}
                                 className="form-control"
-                                placeholder="techcorp"
+                                placeholder="Email"
                                 required
+
                             />
                         </div>
 
@@ -98,46 +98,33 @@ export default function CreateOrganization() {
                                 onChange={handleChange}
                                 className="form-control"
                                 rows={3}
+                                placeholder="Description"
                             />
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">Website</label>
+                            <label className="form-label">Password</label>
                             <input
-                                name="website"
-                                value={form.website}
+                                name="password"
+                                value={form.password}
                                 onChange={handleChange}
                                 className="form-control"
-                                placeholder="https://example.com"
+                                placeholder="Enter Password"
                             />
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">Industry</label>
+                            <label className="form-label">Confirm Password</label>
                             <input
-                                name="industry"
-                                value={form.industry}
+                                name="confirmPassword"
+                                value={form.confirmPassword}
                                 onChange={handleChange}
                                 className="form-control"
+                                placeholder="Confirm password"
                             />
                         </div>
 
-                        <div className="mb-4">
-                            <label className="form-label">Organization Size</label>
 
-                            <select
-                                name="size"
-                                value={form.size}
-                                onChange={handleChange}
-                                className="form-select"
-                            >
-                                <option value="">Select Size</option>
-                                <option value="1-10">1-10</option>
-                                <option value="11-50">11-50</option>
-                                <option value="51-200">51-200</option>
-                                <option value="200+">200+</option>
-                            </select>
-                        </div>
 
                         <div className="d-flex justify-content-end gap-2">
                             <button
@@ -151,7 +138,7 @@ export default function CreateOrganization() {
                                 type="submit"
                                 className="btn btn-primary"
                             >
-                                Create Organization
+                                Create User
                             </button>
                         </div>
 
