@@ -11,6 +11,7 @@ import SuperAdmin from "../pages/SuperAdmin/SuperAdmin"
 import Organization from "../pages/Organization/Organization"
 import SelectOrganization from "../pages/Organization/SelectOrganization"
 import CreateUser from "../pages/Organization/CreateUser"
+import Project from "../pages/Project/Project"
 
 type PrivateRouteProps = {
     children: React.ReactElement
@@ -47,6 +48,7 @@ const AppRoutes = () => {
                 <Route path="/create-user" element={<CreateUser />} />
                 <Route path="/create-project/:id" element={<CreateProject />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/project" element={<Project />} />
                 <Route path="/select-organization" element={<SelectOrganization />} />
             </Route>
 

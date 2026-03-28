@@ -1,11 +1,29 @@
 import React, { useEffect, useState } from 'react'
-import { apiRequest, getRecords } from '../../services/api.services'
-import AddMemberModal from './AddMemberModal'
+import { apiRequest } from '../../services/api.services'
 import { useApi } from '../../utils/useApi'
-import getActionsFromGroups, { Action } from '../../utils/getAllPermissions'
 import { useNavigate } from 'react-router-dom'
+import usePermissions from '../../utils/usePermissions'
+import { Action } from '../../utils/getAllPermissions'
 
-
+type Member = {
+    id: number;
+    role: "ORG_OWNER" | "ORG_MEMBER" | "ORG_ADMIN";
+    organizationId: number,
+    userId: number,
+    user: {
+        id: number,
+        email: string,
+        name: string
+    };
+    addedBy: {
+        email: string,
+        name: string
+    }
+    // add other fields if needed
+};
+type MembersResponse = {
+    members: Member[]
+}
 
 type Organization = {
     id: number
@@ -21,63 +39,67 @@ type Organization = {
 const Organization = () => {
 
     const organization = JSON.parse(localStorage.getItem("organization"))
-    const [users, setUsers] = useState([])
-    const [permissions, setPermissions] = useState([])
-    const [members, setMembers] = useState([])
-    const [membersAccess, setMembersAccess] = useState(false)
-    const [loading, setLoading] = useState(true)
-    const [showModal, setShowModal] = useState(false)
+    const [members, setMembers] = useState<Member[]>([]);
     const user = JSON.parse(localStorage.getItem("user"))
     const navigate = useNavigate()
 
-    const { callApi: fetchPermissions, loading: permissionsLoading } = useApi()
-    const getPermissions = () => {
-        fetchPermissions(
-            apiRequest,
-            {
-                endpoint: `/organizations/permissions/${organization?.id}`,
+    const {
+        permissions,
+        loading: permissionsLoading,
+        // error, 
+        // hasAccess 
+    } = usePermissions(organization?.id);
+
+    const { callApi: fetchMembers, loading: membersLoading } = useApi()
+    const getMembers = () => {
+        fetchMembers<MembersResponse>(
+            apiRequest({
+                endpoint: `/organizations/get-members/${organization?.id}`,
                 method: "GET",
-            },
-            (response) => {
-                const actions = getActionsFromGroups(response?.data?.permissions?.permissions)
-                setPermissions(actions)
-                setMembersAccess(true)
+            }),
+            (data) => {
+                setMembers(data.members)
             },
             (err) => {
                 console.error(err.message)
             }
         )
     }
-
     useEffect(() => {
-      getPermissions()
-    }, [])
-    
+        if (permissions?.includes(Action.GET_MEMBERS_LIST)) {
+            getMembers()
+        }
+    }, [permissions])
 
 
-    const handleAddMember = async (user: object) => {
-        setLoading(true)
-        try {
-            await apiRequest({
-                endpoint: "/organizations/add-member",
-                method: "POST",
+
+    const { callApi: updateRole, loading: updatingRole } = useApi()
+    const handleRoleChange = (newRole: "ORG_MEMBER" | "ORG_ADMIN", userId, index: number) => {
+        updateRole<Member[]>(
+            apiRequest({
+                endpoint: `/organizations/update-member-role`,
+                method: "PATCH",
                 body: {
-                    memberId: user.id,
-                    organizationId: organization?.organizationId
+                    organizationId: organization.id,
+                    memberId: userId,
+                    role: newRole
                 }
-            })
-        } catch (err) {
-            if (err && typeof err === 'object' && 'message' in err) {
-                alert(err.message)
+            }),
+            () => {
+                setMembers((prev) => {
+                    const updatedMembers = [...prev]
+                    updatedMembers[index] = {
+                        ...updatedMembers[index],
+                        role: newRole
+                    }
+                    return updatedMembers
+                })
+            },
+            (err) => {
                 console.error(err.message)
             }
-        } finally {
-            setLoading(false)
-            setShowModal(false)
-        }
-
-
-    }
+        )
+    };
     // console.log(permissions)
 
     return (
@@ -116,13 +138,20 @@ const Organization = () => {
             </div>
             {permissions.includes(Action.GET_MEMBERS_LIST) && (
                 <div className="col-12 mb-4">
+                    <div className='d-flex justify-content-end mb-2 mt-2'>
+                        <button className='btn-primary btn btn-sm'
+                            onClick={() => navigate('/create-user')}
+                        >
+                            Create User +
+                        </button>
+                    </div>
                     <div className="card shadow-sm">
                         <div className="card-header fw-semibold">
-                            Organization permissions
+                            Organization members
                         </div>
-
                         <div className="card-body p-0">
-                            <table className="table mb-0">
+
+                            <table className="table mb-0 table-sm font-size-13">
                                 <thead className="table-light">
                                     <tr>
                                         <th>Name</th>
@@ -134,20 +163,26 @@ const Organization = () => {
                                 </thead>
 
                                 <tbody>
-                                    {members.map(usr => (
+                                    {members.map((usr, index) => (
                                         <tr key={usr?.id}>
                                             <td>{usr?.user?.name}</td>
                                             <td>{usr?.user?.email}</td>
-                                            <td>{usr?.role}</td>
+                                            <td className='font-size-13'>
+                                                {usr.role === "ORG_OWNER" ? (<span>{usr.role}</span>) : (
+                                                    <select
+                                                        className=" font-size-13"
+                                                        value={usr?.role}
+                                                        onChange={(e) => handleRoleChange(e.target.value, usr.userId, index)}
+
+                                                    >
+                                                        <option className='font-size-13' value="ORG_MEMBER">ORG_MEMBER</option>
+                                                        <option className='font-size-13' value="ORG_ADMIN">ORG_ADMIN</option>
+                                                    </select>)}
+                                            </td>
                                             <td>{usr?.addedBy?.name}</td>
                                             <td>
                                                 <div className='d-flex gap-2'>
-                                                    <button
-                                                        className='btn btn-warning btn-sm'
-                                                        disabled={usr?.user?.id === user.id}
-                                                    >
-                                                        Change Role
-                                                    </button>
+
                                                     <button
                                                         className='btn btn-danger btn-sm'
                                                         disabled={usr?.user?.id === user.id}
@@ -162,24 +197,10 @@ const Organization = () => {
                         </div>
                     </div>
 
-                    <div className='d-flex justify-content-center mb-2 mt-2'>
-                        <button className='btn-primary btn btn-sm'
-                            onClick={() => navigate('/create-user')}
-                        >
-                            Create User +
-                        </button>
-                    </div>
+
 
                 </div>
             )}
-
-            <AddMemberModal
-                users={users}
-                show={showModal}
-                onClose={() => setShowModal(false)}
-                onAdd={handleAddMember}
-                orgName={organization?.name}
-            />
         </div>
     )
 }

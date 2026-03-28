@@ -6,7 +6,7 @@ const permissionMap: Record<string, string[]> = {
         "ADD_MEMBER",
         "REMOVE_MEMBER",
         "CHANGE_MEMBER_ROLE",
-        "CREATE_PROJECTS",
+        "CREATE_PROJECT",
         "GET_MEMBERS_LIST",
         "DELETE_PROJECT"
     ],

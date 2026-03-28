@@ -15,7 +15,7 @@ export default function WorkspaceHome() {
 
   const navigate = useNavigate()
   const [projects, setProjects] = useState<Project[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [orgMembers, setOrgMembers] = useState([])
   const [project, setProject] = useState({})
@@ -47,11 +47,11 @@ export default function WorkspaceHome() {
     }
   }
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    getAssignedProjects()
+  //   getAssignedProjects()
 
-  }, [])
+  // }, [])
 
 
   const handleAddProjMember = async (user: object) => {
@@ -138,7 +138,7 @@ export default function WorkspaceHome() {
 
         <div className="col-12 mb-4">
 
-          <div className="card shadow-sm">
+          {/* <div className="card shadow-sm">
             <div className="card-header fw-semibold">
               Recent Projects
             </div>
@@ -194,7 +194,7 @@ export default function WorkspaceHome() {
 
               </table>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Projects */}

@@ -38,16 +38,16 @@ export default function CreateUser() {
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
         createUser(
-            apiRequest,
-            {
+            apiRequest({
                 endpoint: "/organizations/create-user",
                 method: "POST",
                 body: { ...form, organizationId },
-            },
+            }),
             (response) => {
                 navigate('/organization')
             },
             (err) => {
+                alert(err.message)
                 console.error(err.message)
             }
         )
@@ -130,6 +130,7 @@ export default function CreateUser() {
                             <button
                                 type="button"
                                 className="btn btn-outline-secondary"
+                                onClick={()=> navigate('/organization')}
                             >
                                 Cancel
                             </button>

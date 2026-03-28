@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { apiRequest, getRecords } from "../../services/api.services"
 import { useNavigate, useParams } from "react-router-dom"
+import { useApi } from "../../utils/useApi"
 
 type Organization = {
     id: string
@@ -77,24 +78,22 @@ export default function CreateProject() {
         }))
     }
 
+    const { callApi: createProject, loading: creatingProject } = useApi()
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
-        try {
-
-            await apiRequest({
-                body: { id, projectId: id, ...form },
-                method: id ? "PUT" : "POST",
-                endpoint: id ? `/projects/${id}` : "/projects/create"
-            })
-            navigate('/')
-        } catch (err: unknown) {
-            if (err && typeof err === 'object' && 'message' in err) {
-                alert(err.message)
+        createProject(
+            apiRequest({
+                endpoint: `/projects/create`,
+                method: "POST",
+                body:{...form}
+            }),
+            () => {
+                navigate("/project")
+            },
+            (err) => {
                 console.error(err.message)
             }
-        }
-
-        // call api
+        )        
     }
 
     return (
@@ -149,7 +148,7 @@ export default function CreateProject() {
                             <button
                                 type="button"
                                 className="btn btn-outline-secondary btn-sm"
-                                onClick={() => navigate('/')}
+                                onClick={() => navigate('/project')}
                             >
                                 Cancel
                             </button>

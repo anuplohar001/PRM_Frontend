@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { apiRequest, getRecords } from "../../services/api.services"
 import Loader from "../../components/Loader"
-import AddMemberModal from "../Organization/AddMemberModal"
+import usePermissions from "../../utils/usePermissions"
+import { Action } from "../../utils/getAllPermissions"
+import { useApi } from "../../utils/useApi"
 
 type Project = {
     id: string
@@ -10,101 +12,90 @@ type Project = {
     organization: string
     status: string
 }
+type ProjectResponse = {
+    projects: Project[]
+}
+
+type ProjectMember = {
+    role: "PROJECT_MEMBER" | "PROJECT_ADMIN",
+    user : {
+        name: string,
+        email: string
+    }
+}
+
+type ProjectMembersResponse = {
+    members: ProjectMember[]
+}
 
 export default function Project() {
 
     const navigate = useNavigate()
     const [projects, setProjects] = useState<Project[]>([])
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const [showModal, setShowModal] = useState(false)
-    const [orgMembers, setOrgMembers] = useState([])
     const [project, setProject] = useState({})
-    const [assignedProjects, setAssignedProjects] = useState([])
-    const [projectMembers, setProjectMembers] = useState([])
+    const [projectMembers, setProjectMembers] = useState<Record<string, ProjectMember[]>>({});
     const [openProjectId, setOpenProjectId] = useState<number | null>()
     const org = JSON.parse(localStorage.getItem('organization'))
-    const orgRole = org.role
-    const orgAdmin = orgRole === "ORG_ADMIN" || orgRole === "ORG_OWNER"
+
+    const {
+        permissions,
+        loading: permissionsLoading,
+        // error, 
+        // hasAccess 
+    } = usePermissions(org?.id);
 
 
 
-
-
-    const getAssignedProjects = async () => {
-        try {
-            const response = await apiRequest({
-                endpoint: '/projects/get-assigned-projects',
+    const { callApi: fetchProjects, loading: projectsLoading } = useApi()
+    const getProjects = () => {
+        fetchProjects<ProjectResponse>(
+            apiRequest({
+                endpoint: `/projects/${org.id}`,
                 method: "GET",
-            })
-            setAssignedProjects(response?.data)
-        } catch (err) {
-            if (err && typeof err === 'object' && 'message' in err) {
-                alert(err.message)
+            }),
+            (data) => {
+                setProjects(data.projects)
+            },
+            (err) => {
                 console.error(err.message)
             }
-        } finally {
-            setLoading(false)
-        }
+        )
     }
-
     useEffect(() => {
-
-        getAssignedProjects()
-
+      getProjects()    
     }, [])
+    
 
 
-    const handleAddProjMember = async (user: object) => {
-        setLoading(true)
-        try {
-            await apiRequest({
-                endpoint: '/projects/add-member',
-                method: "POST",
-                body: { projectId: project?.id, memberId: user.id }
-            })
-        } catch (err) {
-            if (err && typeof err === 'object' && 'message' in err) {
-                alert(err.message)
-                console.error(err.message)
-            }
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const getProjectMembers = async (projectId: number) => {
-        if (openProjectId === projectId) {
+    const { callApi: fetchMembers, loading: membersLoading } = useApi()
+    const getProjectMembers = (projectId:number) => {
+        if (projectId === openProjectId) {
+            console.log({projectId, openProjectId})
             setOpenProjectId(null)
             return
         }
-        setOpenProjectId(projectId)
-        setLoading(true)
-        try {
-            if (!projectMembers[projectId]) {
-                const args = {
-                    endpoint: '/getRecords',
-                    body: {
-                        modelName: 'projectMembers',
-                        filters: { projectId },
-                        include: {
-                            user: true
-                        }
-                    }
-                }
-                const res = await getRecords(args)
-                setProjectMembers(prev => ({
+        if (projectMembers[projectId]) {
+            setOpenProjectId(projectId)
+            return
+        }
+        fetchMembers<ProjectMembersResponse>(
+            apiRequest({
+                endpoint: `/projects/get-members/${projectId}`,
+                method: "GET",
+            }),
+            (data) => {
+                setProjectMembers((prev) => ({
                     ...prev,
-                    [projectId]: res?.data
-                }))
-            }
-        } catch (err) {
-            if (err && typeof err === 'object' && 'message' in err) {
-                // alert(err.message)
+                    [projectId]: data.members,
+                }));
+                setOpenProjectId(projectId)
+            },
+            (err) => {
                 console.error(err.message)
             }
-        } finally {
-            setLoading(false)
-        }
+        )
     }
 
 
@@ -130,12 +121,12 @@ export default function Project() {
         <div className="container-fluid mt-1 position-relative">
             <Loader loading={loading} />
             <div className="d-flex justify-content-between align-items-center mb-2">
-                <h3>Workspace Dashboard</h3>
+                <h3>Projects Dashboard</h3>
             </div>
 
             <div className="row">
 
-                <div className="col-12 mb-4">
+                {/* <div className="col-12 mb-4">
 
                     <div className="card shadow-sm">
                         <div className="card-header fw-semibold">
@@ -194,10 +185,10 @@ export default function Project() {
                             </table>
                         </div>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Projects */}
-                {orgAdmin && (
+                {permissions.includes(Action.CREATE_PROJECT) && (
                     <div className="col-12 mb-4">
                         <div className="d-flex justify-content-end">
                             <button className="btn-primary btn-sm btn mb-2" onClick={() => navigate('/create-project')}>
@@ -207,7 +198,7 @@ export default function Project() {
 
                         <div className="card shadow-sm">
                             <div className="card-header fw-semibold">
-                                Recent Projects
+                                Projects List
                             </div>
 
                             <div className="card-body p-0">
