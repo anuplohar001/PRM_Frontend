@@ -12,7 +12,7 @@ type Organization = {
     role: string
 }
 
-type CreateProjectInput = {
+type Project = {
     name: string
     organizationId?: number
     description: string
@@ -25,10 +25,10 @@ type CreateProjectInput = {
 export default function CreateProject() {
 
     const navigate = useNavigate()
-    const organization = JSON.parse(localStorage.getItem('organization'))
+    const organization = JSON.parse(localStorage.getItem('organization') || "{}")
     const { id } = useParams()
     const [loading, setLoading] = useState(false)
-    const [form, setForm] = useState<CreateProjectInput>({
+    const [form, setForm] = useState<Project>({
         name: "",
         organizationId: organization.id,
         description: "",
@@ -81,14 +81,14 @@ export default function CreateProject() {
     const { callApi: createProject, loading: creatingProject } = useApi()
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
-        createProject(
+        createProject<Project>(
             apiRequest({
-                endpoint: `/projects/create`,
-                method: "POST",
+                endpoint: id ? `/projects/${id}` : `/projects/create`,
+                method: id ? "PUT" : "POST",
                 body:{...form}
             }),
             () => {
-                navigate("/project")
+                navigate("/projects")
             },
             (err) => {
                 console.error(err.message)
@@ -148,7 +148,7 @@ export default function CreateProject() {
                             <button
                                 type="button"
                                 className="btn btn-outline-secondary btn-sm"
-                                onClick={() => navigate('/project')}
+                                onClick={() => navigate('/projects')}
                             >
                                 Cancel
                             </button>
