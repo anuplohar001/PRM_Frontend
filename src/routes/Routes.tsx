@@ -12,6 +12,7 @@ import Organization from "../pages/Organization/Organization"
 import SelectOrganization from "../pages/Organization/SelectOrganization"
 import CreateUser from "../pages/Organization/CreateUser"
 import Project from "../pages/Project/Project"
+import ViewProject from "../pages/Project/ViewProject"
 
 type PrivateRouteProps = {
     children: React.ReactElement
@@ -41,15 +42,22 @@ const AppRoutes = () => {
                     </PrivateRoute>
                 }
             >
+                <Route path="/select-organization" element={<SelectOrganization />} />
+
                 <Route path="/super-admin-dashboard" element={<SuperAdmin />} />
                 <Route path="/" element={<WorkSpace />} />
+
                 <Route path="/organization" element={<Organization />} />
-                <Route path="/create-project" element={<CreateProject />} />
                 <Route path="/create-user" element={<CreateUser />} />
-                <Route path="/create-project/:id" element={<CreateProject />} />
+
+
+                <Route path="/projects" element={<Project />} />
+                <Route path="/create-project" element={<CreateProject />} />
+                <Route path="/update-project/:id" element={<CreateProject />} />
+                <Route path="/view-project/:id" element={<ViewProject />} />
+
+
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/project" element={<Project />} />
-                <Route path="/select-organization" element={<SelectOrganization />} />
             </Route>
 
             <Route path="/create-organization" element={<CreateOrganization />} />

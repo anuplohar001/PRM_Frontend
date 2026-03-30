@@ -1,0 +1,20 @@
+/* Make only main scrollable */
+.main-scroll {
+    overflow-y: scroll;
+    height: 100%;
+}
+
+/* Hide scrollbar (Chrome, Edge, Safari) */
+.main-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar (Firefox) */
+.main-scroll {
+    scrollbar-width: none;
+}
+
+/* Hide scrollbar (IE/Edge old) */
+.main-scroll {
+    -ms-overflow-style: none;
+}

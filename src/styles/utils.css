@@ -16,3 +16,7 @@
     align-items: center;
     z-index: 1000;
 }
+
+.testborder {
+    border: 2px solid black;
+}

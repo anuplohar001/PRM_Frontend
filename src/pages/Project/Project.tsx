@@ -18,7 +18,7 @@ type ProjectResponse = {
 
 type ProjectMember = {
     role: "PROJECT_MEMBER" | "PROJECT_ADMIN",
-    user : {
+    user: {
         name: string,
         email: string
     }
@@ -64,15 +64,15 @@ export default function Project() {
         )
     }
     useEffect(() => {
-      getProjects()    
+        getProjects()
     }, [])
-    
+
 
 
     const { callApi: fetchMembers, loading: membersLoading } = useApi()
-    const getProjectMembers = (projectId:number) => {
+    const getProjectMembers = (projectId: number) => {
         if (projectId === openProjectId) {
-            console.log({projectId, openProjectId})
+            console.log({ projectId, openProjectId })
             setOpenProjectId(null)
             return
         }
@@ -120,8 +120,8 @@ export default function Project() {
     return (
         <div className="container-fluid mt-1 position-relative">
             <Loader loading={loading} />
-            <div className="d-flex justify-content-between align-items-center mb-2">
-                <h3>Projects Dashboard</h3>
+            <div className="d-flex justify-content-between align-items-center mb-1">
+                <h5>Projects Dashboard</h5>
             </div>
 
             <div className="row">
@@ -190,19 +190,17 @@ export default function Project() {
                 {/* Projects */}
                 {permissions.includes(Action.CREATE_PROJECT) && (
                     <div className="col-12 mb-4">
-                        <div className="d-flex justify-content-end">
-                            <button className="btn-primary btn-sm btn mb-2" onClick={() => navigate('/create-project')}>
-                                + Create Project
-                            </button>
-                        </div>
 
                         <div className="card shadow-sm">
-                            <div className="card-header fw-semibold">
+                            <div className="card-header fw-semibold d-flex justify-content-between">
                                 Projects List
+                                <button className="btn-primary btn-sm btn" onClick={() => navigate('/create-project')}>
+                                    + Create Project
+                                </button>
                             </div>
 
                             <div className="card-body p-0">
-                                <table className="table mb-0">
+                                <table className="table mb-0 table-sm font-size-13 table-hover">
                                     <thead className="table-light">
                                         <tr>
                                             <th>Project</th>
@@ -241,19 +239,18 @@ export default function Project() {
                                                     <td>
                                                         <button
                                                             className="btn btn-sm btn-success me-2"
-                                                            onClick={() => {
-                                                                setShowModal(true)
-                                                                setProject(project)
-                                                            }}
+                                                            title="View project"
+                                                            onClick={() => navigate(`/view-project/${project.id}`)}
                                                         >
-                                                            Add Member
+                                                            👁️
                                                         </button>
 
                                                         <button
                                                             className="btn btn-sm btn-primary"
-                                                            onClick={() => navigate(`/create-project/${project.id}`)}
+                                                            onClick={() => navigate(`/update-project/${project.id}`)}
+                                                            title="Edit project"
                                                         >
-                                                            Edit
+                                                            ✏️
                                                         </button>
                                                     </td>
                                                 </tr>
