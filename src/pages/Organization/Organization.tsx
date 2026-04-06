@@ -38,9 +38,9 @@ type Organization = {
 
 const Organization = () => {
 
-    const organization = JSON.parse(localStorage.getItem("organization"))
+    const organization = JSON.parse(localStorage.getItem("organization") || "{}")
     const [members, setMembers] = useState<Member[]>([]);
-    const user = JSON.parse(localStorage.getItem("user"))
+    const user = JSON.parse(localStorage.getItem("user") || "{}")
     const navigate = useNavigate()
 
     const {
@@ -138,16 +138,16 @@ const Organization = () => {
             </div>
             {permissions.includes(Action.GET_MEMBERS_LIST) && (
                 <div className="col-12 mb-4">
-                    <div className='d-flex justify-content-end mb-2 mt-2'>
-                        <button className='btn-primary btn btn-sm'
-                            onClick={() => navigate('/create-user')}
-                        >
-                            Create User +
-                        </button>
-                    </div>
                     <div className="card shadow-sm">
                         <div className="card-header fw-semibold">
-                            Organization members
+                            <div className='d-flex justify-content-between'>
+                                Organization members
+                                <button className='btn-primary btn btn-sm'
+                                    onClick={() => navigate('/create-user')}
+                                >
+                                    Create User +
+                                </button>
+                            </div>
                         </div>
                         <div className="card-body p-0">
 
@@ -196,9 +196,6 @@ const Organization = () => {
                             </table>
                         </div>
                     </div>
-
-
-
                 </div>
             )}
         </div>

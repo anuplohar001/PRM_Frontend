@@ -2,7 +2,7 @@ import { useState } from "react"
 import { apiRequest } from "../../services/api.services"
 import { useNavigate } from "react-router-dom"
 import { useApi } from "../../utils/useApi"
-import Loader from "../../components/Loader"
+import Loader from "../../components/Loader/Loader"
 
 type CreateUserInput = {
     name: string
@@ -130,7 +130,7 @@ export default function CreateUser() {
                             <button
                                 type="button"
                                 className="btn btn-outline-secondary"
-                                onClick={()=> navigate('/organization')}
+                                onClick={() => navigate('/organization')}
                             >
                                 Cancel
                             </button>

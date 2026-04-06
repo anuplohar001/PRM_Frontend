@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { apiRequest } from "../../services/api.services"
 import { Link, useNavigate } from "react-router-dom"
 import { signupApi } from "../../services/auth.services"
-import Loader from "../../components/Loader"
+import Loader from "../../components/Loader/Loader"
 type SignupForm = {
   name: string
   email: string
@@ -50,7 +50,7 @@ const Signup: React.FC = () => {
 
   return (
     <div className="container position-relative vh-100 d-flex justify-content-center align-items-center">
-      <Loader loading={loading}/>
+      <Loader loading={loading} />
       <div className="card shadow p-4" style={{ width: "420px" }}>
         <h3 className="text-center mb-4">Sign Up</h3>
 
