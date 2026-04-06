@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { apiRequest, getRecords } from "../../services/api.services"
-import Loader from "../../components/Loader"
+import { useNavigate } from "react-router-dom"
+import { apiRequest } from "../../services/api.services"
+import Loader from "../../components/Loader/Loader"
 import usePermissions from "../../utils/usePermissions"
 import { Action } from "../../utils/getAllPermissions"
 import { useApi } from "../../utils/useApi"
+import { useApiOnLoad } from "../../utils/useApiOnLoad"
 
 type Project = {
     id: string
     name: string
     organization: string
     status: string
+    role: string
+    createdBy: {
+        name: string
+        email: string
+    }
 }
 type ProjectResponse = {
     projects: Project[]
@@ -32,25 +38,14 @@ export default function Project() {
 
     const navigate = useNavigate()
     const [projects, setProjects] = useState<Project[]>([])
-    const [loading, setLoading] = useState(false)
-    const [showModal, setShowModal] = useState(false)
-    const [project, setProject] = useState({})
-    const [projectMembers, setProjectMembers] = useState<Record<string, ProjectMember[]>>({});
-    const [openProjectId, setOpenProjectId] = useState<number | null>()
-    const org = JSON.parse(localStorage.getItem('organization'))
+    const [myProjects, setMyProjects] = useState<Project[]>([])
+    const org = JSON.parse(localStorage.getItem('organization') || "{}")
 
-    const {
-        permissions,
-        loading: permissionsLoading,
-        // error, 
-        // hasAccess 
-    } = usePermissions(org?.id);
+    const { permissions, loading: permissionsLoading } = usePermissions(org?.id, "ORGANIZATION");
 
-
-
-    const { callApi: fetchProjects, loading: projectsLoading } = useApi()
-    const getProjects = () => {
-        fetchProjects<ProjectResponse>(
+    const { callApi: fetchAllProjects, loading: fetchingAllProjects } = useApi()
+    const getAllProjects = () => {
+        fetchAllProjects<ProjectResponse>(
             apiRequest({
                 endpoint: `/projects/${org.id}`,
                 method: "GET",
@@ -63,34 +58,16 @@ export default function Project() {
             }
         )
     }
-    useEffect(() => {
-        getProjects()
-    }, [])
 
-
-
-    const { callApi: fetchMembers, loading: membersLoading } = useApi()
-    const getProjectMembers = (projectId: number) => {
-        if (projectId === openProjectId) {
-            console.log({ projectId, openProjectId })
-            setOpenProjectId(null)
-            return
-        }
-        if (projectMembers[projectId]) {
-            setOpenProjectId(projectId)
-            return
-        }
-        fetchMembers<ProjectMembersResponse>(
+    const { callApi: fetchMyProjects, loading: fetchingMyProjects } = useApi()
+    const getMyProjects = () => {
+        fetchMyProjects<ProjectResponse>(
             apiRequest({
-                endpoint: `/projects/get-members/${projectId}`,
+                endpoint: `/projects/get-my-projects/${org.id}`,
                 method: "GET",
             }),
             (data) => {
-                setProjectMembers((prev) => ({
-                    ...prev,
-                    [projectId]: data.members,
-                }));
-                setOpenProjectId(projectId)
+                setProjects(data.projects)
             },
             (err) => {
                 console.error(err.message)
@@ -99,22 +76,19 @@ export default function Project() {
     }
 
 
-    const removeProjMember = async (memberId: number, projectId: number) => {
-        setLoading(true)
-        try {
-            await apiRequest({
-                endpoint: `/projects/${projectId}/${memberId}`,
-                method: "DELETE",
-            })
-        } catch (err) {
-            if (err && typeof err === 'object' && 'message' in err) {
-                // alert(err.message)
-                console.error(err.message)
+    useEffect(() => {
+        if (permissions) {
+            if (permissions.includes(Action.GET_PROJECTS)) {
+                getAllProjects()
+            } else {
+                getMyProjects()
             }
-        } finally {
-            setLoading(false)
         }
-    }
+    }, [permissions])
+
+
+
+    const loading = permissionsLoading || fetchingAllProjects || fetchingMyProjects
 
 
     return (
@@ -187,127 +161,87 @@ export default function Project() {
                     </div>
                 </div> */}
 
-                {/* Projects */}
-                {permissions.includes(Action.CREATE_PROJECT) && (
-                    <div className="col-12 mb-4">
+                <div className="col-12 mb-4">
 
-                        <div className="card shadow-sm">
-                            <div className="card-header fw-semibold d-flex justify-content-between">
+                    <div className="card shadow-sm">
+                        <div className="card-header fw-semibold d-flex justify-content-between">
+                            {permissions.includes(Action.CREATE_PROJECT) ? (<>
                                 Projects List
                                 <button className="btn-primary btn-sm btn" onClick={() => navigate('/create-project')}>
                                     + Create Project
                                 </button>
-                            </div>
+                            </>) : (<>My Projects</>)}
+                        </div>
 
-                            <div className="card-body p-0">
-                                <table className="table mb-0 table-sm font-size-13 table-hover">
-                                    <thead className="table-light">
-                                        <tr>
-                                            <th>Project</th>
-                                            <th>Organization</th>
-                                            <th>Created By</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
+                        <div className="card-body p-0">
+                            <table className="table mb-0 table-sm font-size-13 table-hover">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Project</th>
+                                        <th>Organization</th>
+                                        <th>Created By</th>
+                                        <th>My Role</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
 
-                                    <tbody>
-                                        {projects.map(project => (
-                                            <React.Fragment key={project.id}>
+                                <tbody>
+                                    {projects?.map((project, idx) => (
+                                        <React.Fragment key={project.id}>
 
-                                                <tr>
-                                                    <td>
-                                                        <span
-                                                            onClick={() => getProjectMembers(parseInt(project.id))}
-                                                            className="me-1 cursor-pointer"
-                                                        >
-                                                            {openProjectId === parseInt(project.id) ? "🔼" : "🔽"}
-                                                        </span>
+                                            <tr>
+                                                <td>
+                                                    {idx + 1}
+                                                </td>
+                                                <td>
+                                                    {project?.name}
+                                                </td>
 
-                                                        {project.name}
-                                                    </td>
+                                                <td>{org.name}</td>
+                                                <td>{project?.createdBy.name}</td>
 
-                                                    <td>{org.name}</td>
-                                                    <td>{project.createdBy.name}</td>
+                                                <td>
+                                                    {project?.role}
+                                                </td>
+                                                <td>
+                                                    <span className="badge bg-success">
+                                                        {project?.status}
+                                                    </span>
+                                                </td>
 
-                                                    <td>
-                                                        <span className="badge bg-success">
-                                                            {project.status}
-                                                        </span>
-                                                    </td>
+                                                <td>
+                                                    <button
+                                                        className="btn btn-sm btn-success me-2"
+                                                        title="View project"
+                                                        onClick={() => navigate(`/view-project/${project.id}`)}
+                                                    >
+                                                        👁️
+                                                    </button>
 
-                                                    <td>
-                                                        <button
-                                                            className="btn btn-sm btn-success me-2"
-                                                            title="View project"
-                                                            onClick={() => navigate(`/view-project/${project.id}`)}
-                                                        >
-                                                            👁️
-                                                        </button>
+                                                    <button
+                                                        className="btn btn-sm btn-primary"
+                                                        onClick={() => navigate(`/update-project/${project.id}`)}
+                                                        title="Edit project"
+                                                    >
+                                                        ✏️
+                                                    </button>
+                                                </td>
+                                            </tr>
 
-                                                        <button
-                                                            className="btn btn-sm btn-primary"
-                                                            onClick={() => navigate(`/update-project/${project.id}`)}
-                                                            title="Edit project"
-                                                        >
-                                                            ✏️
-                                                        </button>
-                                                    </td>
-                                                </tr>
+                                        </React.Fragment>
+                                    ))}
+                                </tbody>
 
-                                                {openProjectId === project.id && (
-                                                    <tr>
-                                                        <td colSpan={5} className="bg-light p-3">
-
-                                                            {projectMembers[project.id]?.length ? (
-                                                                <table className="table table-sm table-bordered mb-0">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th className="fw-semibold text-muted">#</th>
-                                                                            <th className="fw-semibold text-muted">Member Name</th>
-                                                                            <th className="fw-semibold text-muted">Email</th>
-                                                                            <th className="fw-semibold text-muted">Role</th>
-                                                                            <th className="fw-semibold text-muted">Action</th>
-                                                                        </tr>
-                                                                    </thead>
-
-                                                                    <tbody>
-                                                                        {projectMembers[project.id].map((member: any, index: number) => (
-                                                                            <tr key={member.id}>
-                                                                                <td>{index + 1}</td>
-                                                                                <td>{member.user?.name}</td>
-                                                                                <td>{member.user?.email}</td>
-                                                                                <td>{member.role || "Member"}</td>
-                                                                                <td>
-                                                                                    <div className="d-flex flex-wrap gap-2">
-                                                                                        <button type="button" className="btn btn-sm btn-success">Change Role</button>
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            className="btn btn-sm btn-danger"
-                                                                                            onClick={() => removeProjMember(parseInt(member.user.id), parseInt(project.id))}>Remove</button>
-                                                                                    </div>
-                                                                                </td>
-                                                                            </tr>
-                                                                        ))}
-                                                                    </tbody>
-                                                                </table>
-                                                            ) : (
-                                                                <div className="text-muted">No Members</div>
-                                                            )}
-
-                                                        </td>
-                                                    </tr>
-                                                )}
-
-                                            </React.Fragment>
-                                        ))}
-                                    </tbody>
-
-                                </table>
-                            </div>
+                            </table>
                         </div>
                     </div>
-                )}
+                </div>
+
+
+
+
             </div>
 
 

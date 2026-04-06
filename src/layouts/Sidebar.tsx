@@ -26,6 +26,7 @@ const Sidebar = () => {
                 <Tab to={'/organization'} label={'Organization'} />
                 <Tab to={'/'} label={'WorkSpace'} />
                 <Tab to={'/projects'} label={'Projects'} />
+                <Tab to={'/teams'} label={'Teams'} />
 
             </div>
         </div>

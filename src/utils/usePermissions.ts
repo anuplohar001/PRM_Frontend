@@ -15,19 +15,23 @@ type Permission = {
 type PermissionsResponse = {
     permissions: Permission;
 };
-const usePermissions = (organizationId: number) => {
+const usePermissions = (resourceId: number, resource: string = "ORGANIZATION") => {
     const { callApi, loading } = useApi();
 
     const [permissions, setPermissions] = useState([]);
     const [error, setError] = useState(null);
     const [hasAccess, setHasAccess] = useState(false);
+    const endpoint =
+        resource === "ORGANIZATION"
+            ? `/organizations/permissions/${resourceId}`
+            : `/projects/permissions/${resourceId}`;
 
     const fetchPermissions = useCallback(() => {
-        if (!organizationId) return;
+        if (!resourceId) return;
 
         callApi<PermissionsResponse>(
             apiRequest({
-                endpoint: `/organizations/permissions/${organizationId}`,
+                endpoint,
                 method: "GET",
             }),
             (data) => {
@@ -48,7 +52,7 @@ const usePermissions = (organizationId: number) => {
                 setHasAccess(false);
             }
         );
-    }, [organizationId, callApi]);
+    }, [resourceId, callApi, endpoint]);
 
     useEffect(() => {
         fetchPermissions();
