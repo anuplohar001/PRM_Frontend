@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { useApi } from "./useApi"; // your existing hook
-import getActionsFromGroups from "./getAllPermissions"; // adjust path
 import { apiRequest } from "../services/api.services";
 type Permission = {
     id: number;
@@ -12,19 +11,26 @@ type Permission = {
     permissions: string[];
 };
 
+type Actions = string []
+
 type PermissionsResponse = {
     permissions: Permission;
+    actions: Actions
 };
 const usePermissions = (resourceId: number, resource: string = "ORGANIZATION") => {
     const { callApi, loading } = useApi();
 
-    const [permissions, setPermissions] = useState([]);
+    const [permissions, setPermissions] = useState<Actions>([]);
     const [error, setError] = useState(null);
     const [hasAccess, setHasAccess] = useState(false);
     const endpoint =
         resource === "ORGANIZATION"
             ? `/organizations/permissions/${resourceId}`
-            : `/projects/permissions/${resourceId}`;
+            : resource === "PROJECT"
+                ? `/projects/permissions/${resourceId}`
+                : resource === "TEAM"
+                    ? `/teams/permissions/${resourceId}`
+                    : "";
 
     const fetchPermissions = useCallback(() => {
         if (!resourceId) return;
@@ -36,10 +42,7 @@ const usePermissions = (resourceId: number, resource: string = "ORGANIZATION") =
             }),
             (data) => {
                 try {
-                    const actions = getActionsFromGroups(
-                        data?.permissions?.permissions
-                    );
-                    setPermissions(actions);
+                    setPermissions(data.actions);
                     setHasAccess(true);
                     setError(null);
                 } catch (err) {

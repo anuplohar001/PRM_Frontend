@@ -1,36 +1,4 @@
-const permissionMap: Record<string, string[]> = {
-    SUPER_ADMIN_ACTIONS: ["GET_ORGANIZATIONS"],
-    ORG_OWNER_ACTIONS: ["DELETE_ORG", "UPDATE_ORG"],
-    ORG_ADMIN_ACTIONS: [
-        "CREATE_USER",
-        "ADD_MEMBER",
-        "REMOVE_MEMBER",
-        "CHANGE_MEMBER_ROLE",
-        "CREATE_PROJECT",
-        "GET_MEMBERS_LIST",
-        "DELETE_PROJECT"
-    ],
-    PROJECT_ADMIN_ACTIONS: [
-        "PROJECT_MEMBERS_LIST",
-        "UPDATE_PROJECT",
-        "GET_PROJECT",
-        "ADD_PROJECT_MEMBER",
-        "REMOVE_PROJECT_MEMBER",
-        "UPDATE_PROJECT_MEMBER_ROLE",
-        "CREATE_TEAMS",
-        "DELETE_TEAMS",
-    ],
-    PROJECT_MEMBER_ACTIONS: [
-        "VIEW_PROJECT",
-    ],
-    TEAM_ADMIN_ACTIONS: [
-        "ADD_TEAM_MEMBER",
-        "REMOVE_TEAM_MEMBER",
-        "CREATE_TASK",
-        "ASSIGN_TASK",
-    ],
-    TEAM_MEMBER_ACTIONS: ["CREATE_TASK"],
-};
+
 
 export const Action = {
 
@@ -45,7 +13,7 @@ export const Action = {
     CHANGE_MEMBER_ROLE: 'CHANGE_MEMBER_ROLE',
     GET_MEMBERS_LIST: "GET_MEMBERS_LIST",
 
-    GET_PROJECTS:"GET_PROJECTS",
+    GET_ALL_PROJECTS:"GET_ALL_PROJECTS",
     CREATE_PROJECT: "CREATE_PROJECT",
     VIEW_PROJECT:"VIEW_PROJECT",
     UPDATE_PROJECT_MEMBER_ROLE: 'UPDATE_PROJECT_MEMBER_ROLE',
@@ -56,7 +24,7 @@ export const Action = {
 
     CREATE_TEAM: "CREATE_TEAM",
     DELETE_TEAM: "DELETE_TEAM",
-
+    GET_TEAM_MEMBERS: "GET_TEAM_MEMBERS",
     ADD_TEAM_MEMBER: "ADD_TEAM_MEMBER",
     REMOVE_TEAM_MEMBER: "REMOVE_TEAM_MEMBER",
 
@@ -66,10 +34,3 @@ export const Action = {
 
 export type Action = typeof Action[keyof typeof Action]
 
-const getActionsFromGroups = (
-    groups: string[]
-): string[] => {
-    return groups.flatMap(group => permissionMap[group] || [])
-}
-
-export default getActionsFromGroups

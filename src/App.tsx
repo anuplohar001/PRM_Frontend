@@ -1,7 +1,13 @@
+import { AlertProvider } from "./components/CustomAlert/AlertContext"
 import AppRoutes from "./routes/Routes"
 import "./styles/utils.css"
+
 const App = () => {
-  return <AppRoutes />
+  return <>
+    <AlertProvider>
+      <AppRoutes />
+    </AlertProvider>
+  </>
 }
 
 export default App
