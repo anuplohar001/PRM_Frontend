@@ -74,7 +74,7 @@ const Organization = () => {
 
 
     const { callApi: updateRole, loading: updatingRole } = useApi()
-    const handleRoleChange = (newRole: "ORG_MEMBER" | "ORG_ADMIN", userId, index: number) => {
+    const handleRoleChange = (newRole: "ORG_MEMBER" | "ORG_ADMIN", userId:number, index: number) => {
         updateRole<Member[]>(
             apiRequest({
                 endpoint: `/organizations/update-member-role`,

@@ -6,6 +6,7 @@ import usePermissions from "../../utils/usePermissions"
 import { Action } from "../../utils/getAllPermissions"
 import { useApi } from "../../utils/useApi"
 import { useApiOnLoad } from "../../utils/useApiOnLoad"
+import { Eye } from "react-feather"
 
 type Project = {
     id: string
@@ -38,7 +39,6 @@ export default function Project() {
 
     const navigate = useNavigate()
     const [projects, setProjects] = useState<Project[]>([])
-    const [myProjects, setMyProjects] = useState<Project[]>([])
     const org = JSON.parse(localStorage.getItem('organization') || "{}")
 
     const { permissions, loading: permissionsLoading } = usePermissions(org?.id, "ORGANIZATION");
@@ -77,8 +77,8 @@ export default function Project() {
 
 
     useEffect(() => {
-        if (permissions) {
-            if (permissions.includes(Action.GET_PROJECTS)) {
+        if (permissions.length) {
+            if (permissions.includes(Action.GET_ALL_PROJECTS)) {
                 getAllProjects()
             } else {
                 getMyProjects()
@@ -203,7 +203,7 @@ export default function Project() {
                                                 <td>{project?.createdBy.name}</td>
 
                                                 <td>
-                                                    {project?.role}
+                                                    {permissions.includes(Action.GET_ALL_PROJECTS) ? "PROEJCT_ADMIN" : project?.role}
                                                 </td>
                                                 <td>
                                                     <span className="badge bg-success">
@@ -213,15 +213,15 @@ export default function Project() {
 
                                                 <td>
                                                     <button
-                                                        className="btn btn-sm btn-success me-2"
+                                                        className="btn btn-sm btn-outline-primary"
                                                         title="View project"
                                                         onClick={() => navigate(`/view-project/${project.id}`)}
                                                     >
-                                                        👁️
+                                                        <Eye size={16} />
                                                     </button>
 
                                                     <button
-                                                        className="btn btn-sm btn-primary"
+                                                        className="btn btn-sm btn-outline-primary ms-2"
                                                         onClick={() => navigate(`/update-project/${project.id}`)}
                                                         title="Edit project"
                                                     >

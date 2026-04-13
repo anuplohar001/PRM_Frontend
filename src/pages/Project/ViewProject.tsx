@@ -8,6 +8,7 @@ import usePermissions from '../../utils/usePermissions'
 import Loader from '../../components/Loader/Loader'
 import Popup from '../../components/PopupModal/PopupModal'
 import { Action } from '../../utils/getAllPermissions'
+import { Trash2 } from 'react-feather'
 
 
 type Member = {
@@ -126,17 +127,21 @@ const ViewProject = () => {
             method: "GET",
         }),
         (data) => {
-            setProject(data.project)
-            if (permissions.includes(Action.ADD_MEMBER)) {                
-                getOrgMembers(data.project.id)
-                getProjectMembers()
-            }
+            setProject(data.project)            
         },
         (err) => {
             console.error(err.message)
         }
     )
 
+
+    useEffect(() => {
+        if (permissions.includes(Action.ADD_PROJECT_MEMBER) && project) {
+            getOrgMembers(project.id)
+            getProjectMembers()
+        }
+    }, [permissions, project])
+    
     
 
     const { callApi: updateRole, loading: updatingRole } = useApi()
@@ -170,6 +175,9 @@ const ViewProject = () => {
 
     const { callApi: removeMember, loading: removingMember } = useApi()
     const handleRemoveMember = (memberId: number) => {
+        if (!permissions.includes(Action.REMOVE_PROJECT_MEMBER) || projectMembers.length === 1) {
+            return
+        }
         removeMember<Member>(
             apiRequest({
                 endpoint: `/projects/remove-member/${id}/${memberId}`,
@@ -194,7 +202,7 @@ const ViewProject = () => {
                     Project Details
                     <button
                         className="btn btn-secondary btn-sm"
-                        onClick={() => navigate("/projects")}
+                        onClick={() => navigate(-1)}
                     >
                         ← Back
                     </button>
@@ -275,7 +283,6 @@ const ViewProject = () => {
                             <button className='btn-primary btn btn-sm'
                                 onClick={() => {
                                     setShowPopup(true)
-                                    console.log(orgMembers)
                                 }}
                             >
                                 Add Members +
@@ -318,10 +325,10 @@ const ViewProject = () => {
                                                 <div className="d-flex flex-wrap gap-2">
                                                     <button
                                                         type="button"
-                                                        className="btn btn-sm btn-danger font-size-13"
+                                                        className="btn btn-sm font-size-13"
                                                         onClick={(e) => handleRemoveMember(member.user.id, index)}
                                                     >
-                                                        Remove
+                                                        <Trash2 size={15} className='text-danger'/>
                                                     </button>
                                                 </div>
                                             </td>
@@ -330,7 +337,7 @@ const ViewProject = () => {
                                 </tbody>
                             </table>
                         ) : (
-                            <div className="text-muted">No Members</div>
+                            <div className="text-muted text-center">No Members</div>
                         )}
                     </div>
                 </div>

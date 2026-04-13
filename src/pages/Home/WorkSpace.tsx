@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { apiRequest, getRecords } from "../../services/api.services"
-import Loader from "../../components/Loader/Loader"
+import React, { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { apiRequest } from "../../services/api.services"
 import { useApiOnLoad } from "../../utils/useApiOnLoad"
 import usePermissions from "../../utils/usePermissions"
 import Select from "react-select"
@@ -22,7 +21,6 @@ type Option = {
 
 export default function WorkspaceHome() {
 
-  const navigate = useNavigate()
   const [projects, setProjects] = useState<Option[]>([])
   const org = JSON.parse(localStorage.getItem('organization') || "{}")
 
