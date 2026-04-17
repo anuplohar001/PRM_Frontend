@@ -4,6 +4,7 @@ import { apiRequest } from "../../services/api.services"
 import { useApiOnLoad } from "../../utils/useApiOnLoad"
 import usePermissions from "../../utils/usePermissions"
 import Select from "react-select"
+import { useApi } from "../../utils/useApi"
 
 type Project = {
   id: string
@@ -21,6 +22,8 @@ type Option = {
 
 export default function WorkspaceHome() {
 
+
+  const navigate = useNavigate()
   const [projects, setProjects] = useState<Option[]>([])
   const org = JSON.parse(localStorage.getItem('organization') || "{}")
 
@@ -48,6 +51,31 @@ export default function WorkspaceHome() {
 
 
 
+  const { callApi: fetchCreateWorkflow, loading: creatingWorkflow } = useApi()
+
+  const createWorkflow = () => {
+    fetchCreateWorkflow<ProjectResponse>(
+      apiRequest({
+        endpoint: `/workflow/create`, // ✅ new endpoint
+        method: "POST",
+      }),
+      (data) => {
+        console.log(data)
+        setProjects(data.result)
+      },
+      (err) => {
+        showAlert({
+          type: "error",
+          message: err.message,
+          showCancel: true,
+        })
+        console.error(err.message)
+      }
+    )
+  }
+
+
+
   return (
     <div className="container-fluid position-relative">
       {/* <Loader loading={loading} /> */}
@@ -64,6 +92,12 @@ export default function WorkspaceHome() {
         </div>
       </div>
 
+
+      <div className="row mt-3 d-flex justify-content-end">
+        <button className="btn btn-sm btn-primary" style={{width:"fit-content"}} type="button" onClick={() => navigate('/create-workflow')}>
+          + Create WorkFlow
+        </button>
+      </div>
 
     </div>
   )

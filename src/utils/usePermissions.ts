@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useApi } from "./useApi"; // your existing hook
 import { apiRequest } from "../services/api.services";
+import { useAlert } from "../components/CustomAlert/AlertContext";
 type Permission = {
     id: number;
     resourceId: number;
@@ -11,7 +12,7 @@ type Permission = {
     permissions: string[];
 };
 
-type Actions = string []
+type Actions = string[]
 
 type PermissionsResponse = {
     permissions: Permission;
@@ -23,6 +24,7 @@ const usePermissions = (resourceId: number, resource: string = "ORGANIZATION") =
     const [permissions, setPermissions] = useState<Actions>([]);
     const [error, setError] = useState(null);
     const [hasAccess, setHasAccess] = useState(false);
+    const { showAlert } = useAlert()
     const endpoint =
         resource === "ORGANIZATION"
             ? `/organizations/permissions/${resourceId}`
@@ -32,7 +34,9 @@ const usePermissions = (resourceId: number, resource: string = "ORGANIZATION") =
                     ? `/teams/permissions/${resourceId}`
                     : "";
 
+
     const fetchPermissions = useCallback(() => {
+        if (!endpoint) return;
         if (!resourceId) return;
 
         callApi<PermissionsResponse>(
@@ -41,21 +45,22 @@ const usePermissions = (resourceId: number, resource: string = "ORGANIZATION") =
                 method: "GET",
             }),
             (data) => {
-                try {
-                    setPermissions(data.actions);
-                    setHasAccess(true);
-                    setError(null);
-                } catch (err) {
-                    setError(err);
-                }
+                setPermissions(data.actions);
+                setHasAccess(true);
+                setError(null);
             },
             (err) => {
-                console.error(err.message);
+                console.log(err.message);
+                showAlert({
+                    type: "error",
+                    message: err.message,
+                    showCancel: true,
+                })
                 setError(err);
                 setHasAccess(false);
             }
         );
-    }, [resourceId, callApi, endpoint]);
+    }, [resourceId, callApi, endpoint, showAlert]);
 
     useEffect(() => {
         fetchPermissions();
