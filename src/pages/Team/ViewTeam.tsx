@@ -7,6 +7,8 @@ import usePermissions from '../../utils/usePermissions'
 import { Action } from '../../utils/getAllPermissions'
 import Popup from '../../components/PopupModal/PopupModal'
 import { Eye } from 'react-feather'
+import { useAlert } from '../../components/CustomAlert/AlertContext'
+import NoData from '../../components/NoData/NoData'
 
 
 type ProjectMember = {
@@ -65,6 +67,7 @@ type TeamMember = {
 };
 type TeamResponse = {
     team: Team
+    fullTeamAccess: boolean
     teamMembers: TeamMember[]
 }
 
@@ -79,8 +82,10 @@ const ViewTeam = () => {
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>()
     const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([])
     const [showPopup, setShowPopup] = useState<boolean>(false)
+    const [fullTeamAccess, setFullTeamAccess] = useState<boolean>(false)
     const navigate = useNavigate()
     const { id } = useParams()
+    const { showAlert } = useAlert()
     const org = JSON.parse(localStorage.getItem('organization') || "{}")
     const teamId = Number(id)
     const { permissions, loading: permissionsLoading } = usePermissions(teamId, "TEAM");
@@ -94,9 +99,15 @@ const ViewTeam = () => {
             (data) => {
                 setTeam(data.team)
                 setTeamMembers(data.teamMembers)
+                setFullTeamAccess(data.fullTeamAccess)
             },
             (err) => {
                 console.error(err.message)
+                showAlert({
+                    type: "error",
+                    message: err.message,
+                    showCancel: true,
+                })
             }
         )
     }
@@ -167,7 +178,7 @@ const ViewTeam = () => {
                 </button>
             </div>
 
-            {team && (
+            {team ? (
                 <div className="card shadow-sm border">
                     <div className="card-body">
 
@@ -253,8 +264,8 @@ const ViewTeam = () => {
                         </div>
                     </div>
                 </div>
-            )}
-            {permissions.includes(Action.GET_TEAM_MEMBERS) && teamMembers && teamMembers.length > 0 && (
+            ) : (<NoData />)}
+            {fullTeamAccess && teamMembers && teamMembers.length > 0 && (
                 <div className="card shadow-sm border mt-4">
                     <div className="card-body">
                         <div className='d-flex justify-content-between'>
@@ -319,7 +330,7 @@ const ViewTeam = () => {
                 }
             >
                 <div>
-                    {permissions.includes(Action.ADD_TEAM_MEMBER) && (
+                    {permissions?.includes(Action.ADD_TEAM_MEMBER) && (
                         <div className="col-12 mb-4">
                             <div className="card shadow-sm">
                                 <div className="card-header fw-semibold">

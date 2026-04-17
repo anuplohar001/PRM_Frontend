@@ -16,6 +16,7 @@ import ViewProject from "../pages/Project/ViewProject"
 import Team from "../pages/Team/Team"
 import CreateTeam from "../pages/Team/CreateTeam"
 import ViewTeam from "../pages/Team/ViewTeam"
+import CreateWorkflow from "../pages/Home/CreateWorkflow"
 
 type PrivateRouteProps = {
     children: React.ReactElement
@@ -63,6 +64,10 @@ const AppRoutes = () => {
                 <Route path="/teams" element={<Team />} />
                 <Route path="/create-team" element={<CreateTeam />} />
                 <Route path="/view-team/:id" element={<ViewTeam />} />
+
+
+                <Route path="/teams" element={<Team />} />
+                <Route path="/create-workflow" element={<CreateWorkflow />} />
 
 
                 <Route path="/profile" element={<Profile />} />
