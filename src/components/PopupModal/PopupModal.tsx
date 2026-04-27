@@ -2,7 +2,9 @@ import React from "react";
 
 type ButtonConfig = {
     label: string;
-    onClick: () => void;
+    type?: "button" | "submit" | "reset" | undefined ;
+    form?:string;
+    onClick?: () => void;
     className?: string;
 };
 
@@ -40,7 +42,7 @@ export default function Popup({
                     </div>
 
                     {/* Body */}
-                    <div className="modal-body">{children}</div>
+                    <div className="modal-body" style={{ maxHeight: "60vh", overflowY: "auto" }}>{children}</div>
 
                     {/* Footer */}
                     {buttons.length > 0 && (
@@ -50,6 +52,8 @@ export default function Popup({
                                     key={index}
                                     className={btn.className || "btn btn-primary"}
                                     onClick={btn.onClick}
+                                    type={btn.type || "button"}
+                                    form={btn.form}
                                 >
                                     {btn.label}
                                 </button>

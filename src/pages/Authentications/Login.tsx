@@ -31,9 +31,9 @@ const Login: React.FC = () => {
         method: "POST",
         endpoint: "/users/login"
       })
-      console.log({res})
-      if (res && typeof res === 'object' && 'user' in res && 'token' in res) {
+      if (res && typeof res === 'object' && 'user' in res && 'token' in res && 'projectId' in res) {
         localStorage.setItem("user", JSON.stringify(res?.user))
+        localStorage.setItem("projectId", JSON.stringify(res?.projectId))
         localStorage.setItem("token", res?.token)        
       }
       if (res && typeof res === 'object' && 'organization' in res && res?.organization.length) {

@@ -5,7 +5,7 @@ type AlertType = "success" | "error" | "warning" | "confirm";
 
 interface AlertOptions {
     type?: AlertType;
-    message: string;
+    message: React.ReactNode;
     showCancel?: boolean;
     onOk?: () => void;
     onCancel?: () => void;

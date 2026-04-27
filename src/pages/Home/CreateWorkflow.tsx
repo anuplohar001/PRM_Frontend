@@ -1,136 +1,185 @@
-
-import React, { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { apiRequest } from "../../services/api.services";
-import Select from "react-select";
+import React, { useEffect, useState } from "react";
 import Loader from "../../components/Loader/Loader";
 import { useApi } from "../../utils/useApi";
-import { useNavigate } from "react-router-dom";
+import { useAlert } from "../../components/CustomAlert/AlertContext";
+import type { Workflow } from "../../utils/types";
+import TextInput from "../../components/CustomTextInput/CustomTextInput";
 
-
-type Project = {
-    id: string
-    name: string
-    organization: string
-    status: string
-}
-type ProjectResponse = {
-    projects: Project[]
-}
-type Option = {
-    value: string;
-    label: string;
+type FormData = {
+    name: string;
+    description: string;
+    position: number | null;
 };
 
+type Props = {
+    workflow?: Workflow;
+    workflows: Workflow[];
+    projectId: number;
+    onSuccess: () => void;
+};
 
-const CreateWorkflow = () => {
-    const [teamName, setTeamName] = useState("");
-    const [projectId, setProjectId] = useState("");
-    const [selectedProject, setSelectedProject] = useState<Option | null>();
-    const [adminProjects, setAdminProjects] = useState<Option[]>([])
-    const navigate = useNavigate()
-    const organization = JSON.parse(localStorage.getItem("organization") || "{}")
-    const user = JSON.parse(localStorage.getItem("user") || "{}")
+const CreateWorkflow = ({ workflow, workflows, projectId, onSuccess }: Props) => {
+    const isEdit = !!workflow?.id;
 
+    const [formData, setFormData] = useState<FormData>({
+        name: "",
+        description: "",
+        position: null,
+    });
 
+    const { showAlert } = useAlert();
 
-    // 🔹 Handle Submit
-    const { callApi: createTeam, loading: creatingTeam } = useApi()
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!teamName || !projectId) {
-            alert("Please fill all fields");
-            return;
+    useEffect(() => {
+        if (workflow) {
+            setFormData({
+                name: workflow.name,
+                description: workflow.description,
+                position: workflow.position,
+            });
         }
+    }, [workflow]);
 
-        createTeam<ProjectResponse>(
-            apiRequest({
-                endpoint: `/teams/create`,
-                method: "POST",
-                body: {
-                    name: teamName,
-                    organizationId: organization?.id, projectId,
-                    createdById: user?.id,
-                    updatedById: user?.id,
-                }
-            }),
-            () => {
-                navigate("/teams")
-            },
-            (err) => {
-                console.error(err.message)
-            }
-        )
+    const handleChange = (e: any) => {
+        const { name, value } = e.target;
 
+        setFormData((prev) => ({
+            ...prev,
+            [name]: name === "position" ? (value === "" ? null : Number(value)) : value,
+        }));
     };
 
 
-    const loading = creatingTeam
+
+
+    const oldPosition = workflows.find(
+        (wf) => wf.id === workflow?.id
+    )?.position;
+
+    const newPosition = formData.position;
+
+    const conflicts = workflows.filter(
+        (wf) => wf.position === newPosition && wf.id !== workflow?.id
+    );
+
+    const conflictNames = conflicts.map((wf) => wf.name).join(", ");
+
+    const affectedWorkflows = workflows.filter((wf) => {
+        if (wf.id === workflow?.id) return false;
+        if (!newPosition || !oldPosition || !wf.position) return false;
+
+        if (newPosition < oldPosition) {
+            return wf.position >= newPosition && wf.position < oldPosition;
+        }
+
+        if (newPosition > oldPosition) {
+            return wf.position > oldPosition && wf.position <= newPosition;
+        }
+
+        return false;
+    });
+
+    const affectedNames = affectedWorkflows
+        .map((wf) => wf.name)
+        .join(", ");
+
+
+
+        
+    const { callApi: createWorkflow, loading } = useApi();
+    const handleSubmit = async (e: React.SubmitEvent) => {
+        e.preventDefault();
+
+
+        if (!formData.name || !formData.position) {
+            showAlert({
+                message: "Please fill all fields",
+            });
+            return;
+        }
+
+        const submitApi = () => {
+
+            createWorkflow<Workflow>(
+                {
+                    endpoint: isEdit ? "/workflow/update" : "/workflow/create",
+                    method: isEdit ? "PUT" : "POST",
+                    body: {
+                        ...(isEdit && { id: workflow?.id }),
+                        name: formData.name,
+                        position: formData.position,
+                        description: formData.description,
+                        projectId,
+                    },
+                },
+                () => {
+                    onSuccess();
+                },
+                (err) => {
+                    console.error(err.message);
+                }
+            );
+        };
+
+        if (conflicts.length > 0) {
+            showAlert({
+                message: (
+                    <>
+                        Position already taken by:{" "}
+                        <strong>{conflictNames}</strong>.
+                        <br />
+                        These workflows will be reordered:{" "}
+                        <strong>{formData.name}</strong>,{" "}
+                        <strong>{affectedNames}</strong>.
+                        <br />
+                        Continue?
+                    </>
+                ),
+                showCancel: true,
+                onCancel: () => { },
+                onOk: submitApi,
+            });
+            return;
+        }
+
+        submitApi();
+    };
+    
+
     return (
-        <div className="container mt-2">
+        <div>
             <Loader loading={loading} />
-            <div className="card shadow">
-                <div className="card-header bg-primary-subtle text-muted d-flex justify-content-between">
-                    <h5>
-                        Create Workflow
-                    </h5>
-                    <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => navigate(-1)}
-                    >
-                        ← Back
-                    </button>
-                </div>
 
-                <div className="card-body">
-                    <form onSubmit={handleSubmit}>
+            <form id="workflow-form" onSubmit={handleSubmit}>
 
-                        {/* Team Name */}
-                        <div className="mb-3 font-size-13">
-                            <label className="form-label">Team Name</label>
-                            <input
-                                type="text"
-                                className="form-control font-size-13"
-                                value={teamName}
-                                onChange={(e) => setTeamName(e.target.value)}
-                                placeholder="Enter team name"
-                                required
-                            />
-                        </div>
+                <TextInput
+                    label="Name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Enter workflow name"
+                    required
+                />
 
-                        {/* Project Dropdown */}
-                        <div className="mb-3">
-                            <label className="form-label">Select Project</label>
-                            <div className="font-size-13">
-                                <Select
-                                    options={adminProjects}
-                                    value={selectedProject}
-                                    onChange={(option) => {
-                                        setSelectedProject(option)
-                                        if (option)
-                                            setProjectId(option?.value)
-                                    }}
-                                    placeholder="Select a project in which you are admin"
-                                    isSearchable
-                                />
-                            </div>
-                        </div>
+                <TextInput
+                    label="Position"
+                    name="position"
+                    type="number"
+                    value={formData.position ? formData.position : ""}
+                    onChange={handleChange}
+                    placeholder="Enter position"
+                    required
+                />
 
-                        {/* Submit Button */}
-                        <div className="text-center">
-                            <button
-                                type="submit"
-                                className="btn btn-primary"
-                                disabled={loading}
-                            >
-                                {loading ? "Creating..." : "Create Team"}
-                            </button>
-                        </div>
+                <TextInput
+                    label="Description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Enter description"
+                    required
+                />
 
-                    </form>
-                </div>
-            </div>
+            </form>
         </div>
     );
 };

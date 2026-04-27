@@ -82,11 +82,11 @@ export default function CreateProject() {
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
         createProject<Project>(
-            apiRequest({
+            {
                 endpoint: id ? `/projects/${id}` : `/projects/create`,
                 method: id ? "PUT" : "POST",
-                body:{...form}
-            }),
+                body: { ...form }
+            },
             () => {
                 navigate("/projects")
             },

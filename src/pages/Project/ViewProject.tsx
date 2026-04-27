@@ -9,24 +9,10 @@ import Loader from '../../components/Loader/Loader'
 import Popup from '../../components/PopupModal/PopupModal'
 import { Action } from '../../utils/getAllPermissions'
 import { Trash2 } from 'react-feather'
+import { useAlert } from '../../components/CustomAlert/AlertContext'
+import type { Member } from '../../utils/types'
 
 
-type Member = {
-    id: number;
-    role: "ORG_OWNER" | "ORG_MEMBER" | "ORG_ADMIN";
-    organizationId: number,
-    userId: number,
-    user: {
-        id: number,
-        email: string,
-        name: string
-    };
-    addedBy: {
-        email: string,
-        name: string
-    }
-    // add other fields if needed
-};
 type MembersResponse = {
     members: Member[]
 }
@@ -58,6 +44,7 @@ const ViewProject = () => {
     const user = JSON.parse(localStorage.getItem("user") || "{}")
     const navigate = useNavigate();
     const { id } = useParams()
+    const {showAlert} = useAlert()
     const [project, setProject] = useState<Project>()
     const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([])
     const [orgMembers, setOrgMembers] = useState<Member[]>()
@@ -71,10 +58,10 @@ const ViewProject = () => {
     const { callApi: fetchMembers, loading: orgMembersLoading } = useApi()
     const getOrgMembers = (projectId: number) => {
         fetchMembers<MembersResponse>(
-            apiRequest({
+            {
                 endpoint: `/projects/get-add-project-member-list/${organization?.id}/${projectId}`,
                 method: "GET",
-            }),
+            },
             (data) => {
                 setOrgMembers(data.members)
             },
@@ -87,10 +74,10 @@ const ViewProject = () => {
     const { callApi: fetchProjectMembers, loading: membersLoading } = useApi()
     const getProjectMembers = () => {
         fetchProjectMembers<ProjectMembersResponse>(
-            apiRequest({
+            {
                 endpoint: `/projects/get-members/${id}`,
                 method: "GET",
-            }),
+            },
             (data) => {
                 setProjectMembers(data.members)
             },
@@ -103,7 +90,7 @@ const ViewProject = () => {
     const { callApi: addMember, loading: addingMember } = useApi()
     const addMemberToProject = (memberId: number) => {
         addMember<MembersResponse>(
-            apiRequest({
+            {
                 endpoint: `/projects/add-member`,
                 method: "POST",
                 body: {
@@ -111,7 +98,7 @@ const ViewProject = () => {
                     memberId: memberId,
                     organizationId: Number(organization.id)
                 }
-            }),
+            },
             () => {
                 setShowPopup(false)
             },
@@ -122,10 +109,10 @@ const ViewProject = () => {
     }
 
     const { loading: projectsLoading } = useApiOnLoad<ProjectResponse>(
-        () => apiRequest({
+        {
             endpoint: `/projects/view-project/${id}`,
             method: "GET",
-        }),
+        },
         (data) => {
             setProject(data.project)            
         },
@@ -147,7 +134,7 @@ const ViewProject = () => {
     const { callApi: updateRole, loading: updatingRole } = useApi()
     const handleRoleChange = (newRole: "PROJECT_MEMBER" | "PROJECT_ADMIN", userId: number, index: number) => {
         updateRole<Member[]>(
-            apiRequest({
+            {
                 endpoint: `/projects/update-member-role`,
                 method: "PATCH",
                 body: {
@@ -155,7 +142,7 @@ const ViewProject = () => {
                     memberId: userId,
                     role: newRole
                 }
-            }),
+            },
             () => {
                 setProjectMembers((prev) => {
                     const updatedMembers = [...prev]
@@ -179,10 +166,10 @@ const ViewProject = () => {
             return
         }
         removeMember<Member>(
-            apiRequest({
+            {
                 endpoint: `/projects/remove-member/${id}/${memberId}`,
                 method: "DELETE",
-            }),
+            },
             () => {
             },
             (err) => {
@@ -194,208 +181,226 @@ const ViewProject = () => {
 
     const loading = permissionsLoading || projectsLoading || membersLoading || orgMembersLoading || addingMember || updatingRole || removingMember
     return (
-        <div className="container mt-1">
+        <div className="container py-3">
             <Loader loading={loading} />
 
-            <div className="card shadow font-size-13">
-                <div className="card-header bg-primary-subtle text-muted d-flex justify-content-between">
-                    Project Details
-                    <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => navigate(-1)}
-                    >
-                        ← Back
-                    </button>
+            {/* 🔹 HEADER */}
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h4 className="mb-0">{project?.name}</h4>
+                    <small className="text-muted">Project Overview</small>
                 </div>
 
+                <button
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => navigate(-1)}
+                >
+                    ← Back
+                </button>
+            </div>
+
+            {/* 🔹 PROJECT INFO */}
+            <div className="card border-0 shadow-sm mb-3">
                 <div className="card-body">
-                    <div className="row mb-2">
+
+                    <div className="row g-4">
+
                         <div className="col-md-3">
-                            <h6>Name:</h6>
-                            <p>{project?.name}</p>
-                        </div>
-                        <div className="col-md-3">
-                            <h6>Status:</h6>
-                            <span className="badge bg-warning text-dark">
+                            <div className="text-muted small">Status</div>
+                            <span className="badge bg-warning text-dark mt-1 px-3 py-2">
                                 {project?.status}
                             </span>
                         </div>
-                        <div className="col-md-6 mb-2">
-                            <h6>Description:</h6>
-                            {project?.description}
-                        </div>
-                    </div>
 
+                        <div className="col-md-3">
+                            <div className="text-muted small">Start Date</div>
+                            <div>{project?.startDate || "—"}</div>
+                        </div>
 
-                    <div className="row">
-                        <div className="col-md-6">
-                            <h6>Start Date:</h6>
-                            <p>{project?.startDate || "N/A"}</p>
+                        <div className="col-md-3">
+                            <div className="text-muted small">End Date</div>
+                            <div>{project?.endDate || "—"}</div>
                         </div>
-                        <div className="col-md-6">
-                            <h6>End Date:</h6>
-                            <p>{project?.endDate || "N/A"}</p>
-                        </div>
-                    </div>
 
-                    <hr />
+                        <div className="col-md-12">
+                            <div className="text-muted small">Description</div>
+                            <div className="mt-1">{project?.description || "No description"}</div>
+                        </div>
 
-                    <h5>Created By</h5>
-                    <div className="row">
-                        <div className="col-md-4">
-                            <strong>Name:</strong>
-                            <p>{project?.createdBy?.name}</p>
-                        </div>
-                        <div className="col-md-4">
-                            <strong>Email:</strong>
-                            <p>{project?.createdBy?.email}</p>
-                        </div>
-                        <div className="col-md-4">
-                            <strong>Role:</strong>
-                            <p>PROJECT_ADMIN</p>
-                        </div>
                     </div>
 
                     <hr />
 
-                    <div className="row">
-                        <div className="col-md-6">
-                            <small className="text-muted">
-                                Created At:{" "}
-                                {new Date(project?.createdAt ?? "").toLocaleString()}
-                            </small>
+                    {/* 🔹 CREATED BY */}
+                    <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div className="fw-semibold">{project?.createdBy?.name}</div>
+                            <small className="text-muted">{project?.createdBy?.email}</small>
                         </div>
-                        <div className="col-md-6 text-end">
-                            <small className="text-muted">
-                                Updated At:{" "}
-                                {new Date(project?.updatedAt ?? "").toLocaleString()}
-                            </small>
-                        </div>
+
+                        <span className="badge bg-light text-dark border">
+                            PROJECT_ADMIN
+                        </span>
+                    </div>
+
+                    <div className="d-flex justify-content-between mt-3 text-muted small">
+                        <span>
+                            Created: {new Date(project?.createdAt ?? "").toLocaleString()}
+                        </span>
+                        <span>
+                            Updated: {new Date(project?.updatedAt ?? "").toLocaleString()}
+                        </span>
                     </div>
                 </div>
             </div>
 
+            {/* 🔹 MEMBERS */}
             {permissions.includes(Action.UPDATE_PROJECT_MEMBER_ROLE) && (
-                <div className="card shadow-sm mt-3">
-                    <div className="card-header fw-semibold">
-                        <div className='d-flex justify-content-between'>
-                            Project members
-                            <button className='btn-primary btn btn-sm'
-                                onClick={() => {
-                                    setShowPopup(true)
-                                }}
-                            >
-                                Add Members +
-                            </button>
-                        </div>
+                <div className="card border-0 shadow-sm">
+                    <div className="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h6 className="mb-0">Members</h6>
+
+                        <button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => setShowPopup(true)}
+                        >
+                            + Add Member
+                        </button>
                     </div>
+
                     <div className="card-body p-0">
 
                         {projectMembers.length ? (
-                            <table className="table table-sm table-bordered mb-0 font-size-13">
-                                <thead>
+                            <table className="table table-hover align-middle mb-0">
+                                <thead className="table-light">
                                     <tr>
-                                        <th className="fw-semibold text-muted">#</th>
-                                        <th className="fw-semibold text-muted">Member Name</th>
-                                        <th className="fw-semibold text-muted">Email</th>
-                                        <th className="fw-semibold text-muted">Role</th>
-                                        <th className="fw-semibold text-muted">Action</th>
+                                        <th>#</th>
+                                        <th>Member</th>
+                                        <th>Role</th>
+                                        <th className="text-end">Actions</th>
                                     </tr>
                                 </thead>
 
                                 <tbody>
-                                    {projectMembers.map((member: ProjectMember, index: number) => (
+                                    {projectMembers.map((member, index) => (
                                         <tr key={member.id}>
-                                            <td>{index + 1}</td>
-                                            <td>{member.user?.name}</td>
-                                            <td>{member.user?.email}</td>
-                                            <td>
-                                                {user?.id === member.user?.id ? (<span>{member.role}</span>) : (
-                                                    <select
-                                                        className=" font-size-13"
-                                                        value={member?.role}
-                                                        onChange={(e) => handleRoleChange(e.target.value, member.user.id, index)}
+                                            <td className="text-muted">{index + 1}</td>
 
-                                                    >
-                                                        <option className='font-size-13' value="PROJECT_MEMBER">PROJECT_MEMBER</option>
-                                                        <option className='font-size-13' value="PROJECT_ADMIN">PROJECT_ADMIN</option>
-                                                    </select>)}
-                                            </td>
                                             <td>
-                                                <div className="d-flex flex-wrap gap-2">
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-sm font-size-13"
-                                                        onClick={(e) => handleRemoveMember(member.user.id, index)}
-                                                    >
-                                                        <Trash2 size={15} className='text-danger'/>
-                                                    </button>
+                                                <div className="fw-semibold">
+                                                    {member.user?.name}
                                                 </div>
+                                                <small className="text-muted">
+                                                    {member.user?.email}
+                                                </small>
+                                            </td>
+
+                                            <td>
+                                                {(user?.id === member.user?.id) || (project?.createdBy.id === member.user?.id) ? (
+                                                    <span className="badge bg-light text-dark border">
+                                                        {member.role}
+                                                    </span>
+                                                ) : (
+                                                    <select
+                                                        className="form-select form-select-sm"
+                                                        value={member.role}
+                                                        onChange={(e) =>
+                                                            handleRoleChange(
+                                                                e.target.value,
+                                                                member.user.id,
+                                                                index
+                                                            )
+                                                        }
+                                                    >
+                                                        <option value="PROJECT_MEMBER">Member</option>
+                                                        <option value="PROJECT_ADMIN">Admin</option>
+                                                    </select>
+                                                )}
+                                            </td>
+
+                                            <td className="text-end">
+                                                <button
+                                                    className="btn btn-sm btn-light"
+                                                    onClick={() =>
+                                                        showAlert({
+                                                            message:`Are you sure you want to remove ${member.user.name} from ${project?.name} ?`,
+                                                            onOk: () => handleRemoveMember(member.user.id) ,
+                                                            showCancel:true
+                                                        })        
+                                                    }
+                                                >
+                                                    <Trash2 size={15} className="text-danger" />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         ) : (
-                            <div className="text-muted text-center">No Members</div>
+                            <div className="text-center text-muted py-4">
+                                No members added yet
+                            </div>
                         )}
                     </div>
                 </div>
             )}
+
+            {/* 🔹 POPUP */}
             <Popup
                 show={showPopup}
-                title={`Add member to ${project?.name} project`}
+                title={`Add member`}
                 onClose={() => setShowPopup(false)}
-                size='lg'
-                buttons={
-                    [
-                        { label: "Cancel", onClick: () => setShowPopup(false), className: "btn btn-sm btn-secondary" }
-                    ]
-                }
+                size="lg"
+                buttons={[
+                    {
+                        label: "Close",
+                        onClick: () => setShowPopup(false),
+                        className: "btn btn-secondary btn-sm",
+                    },
+                ]}
             >
-                <div>
-                    {permissions.includes(Action.ADD_PROJECT_MEMBER) && (
-                        <div className="col-12 mb-4">
-                            <div className="card shadow-sm">
-                                <div className="card-header fw-semibold">
-                                    <div className='d-flex justify-content-between'>
-                                        Organization members
-                                    </div>
-                                </div>
-                                <div className="card-body p-0">
+                <div className="card border-0 shadow-sm">
+                    <div className="card-header bg-white fw-semibold">
+                        Organization Members
+                    </div>
 
-                                    <table className="table mb-0 table-sm font-size-13">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Email</th>
-                                                <th>Role</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
+                    <div className="card-body p-0">
+                        <table className="table table-hover mb-0">
+                            <thead className="table-light">
+                                <tr>
+                                    <th>Member</th>
+                                    <th>Role</th>
+                                    <th className="text-end">Action</th>
+                                </tr>
+                            </thead>
 
-                                        <tbody>
-                                            {orgMembers?.length && orgMembers.map((usr) => (
-                                                <tr key={usr?.id}>
-                                                    <td>{usr?.user?.name}</td>
-                                                    <td>{usr?.user?.email}</td>
-                                                    <td> {usr.role} </td>
-                                                    <td>
-                                                        <button className='btn btn-sm btn-primary'
-                                                            onClick={() => addMemberToProject(usr.user.id)}
-                                                        >
-                                                            + Add
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
+                            <tbody>
+                                {orgMembers?.map((usr) => (
+                                    <tr key={usr.id}>
+                                        <td>
+                                            <div className="fw-semibold">
+                                                {usr.user?.name}
+                                            </div>
+                                            <small className="text-muted">
+                                                {usr.user?.email}
+                                            </small>
+                                        </td>
 
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                                        <td>{usr.role}</td>
+
+                                        <td className="text-end">
+                                            <button
+                                                className="btn btn-sm btn-primary"
+                                                onClick={() => addMemberToProject(usr.user.id)}
+                                            >
+                                                + Add
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </Popup>
         </div>

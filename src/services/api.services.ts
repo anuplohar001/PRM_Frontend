@@ -1,6 +1,6 @@
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
 
-type ApiRequestOptions = {
+export type ApiRequestOptions = {
     method?: HttpMethod
     endpoint: string
     body?: unknown

@@ -45,12 +45,11 @@ const TeamAdminPannel = () => {
 
     const getProjectsWithTeams = () => {
         fetchProjects<ProjectResponse>(
-            apiRequest({
+            {
                 endpoint: `/teams/${org.id}`, // ✅ new endpoint
                 method: "GET",
-            }),
+            },
             (data) => {
-                console.log(data)
                 setProjects(data.result)
             },
             (err) => {

@@ -34,10 +34,10 @@ const CreateTeam = () => {
     const user = JSON.parse(localStorage.getItem("user") || "{}")
 
     const { loading: projectsLoading } = useApiOnLoad<ProjectResponse>(
-        () => apiRequest({
+        {
             endpoint: `/projects/admin/projects`,
             method: "GET",
-        }),
+        },
         (data) => {
             setAdminProjects(data.projects.map((proj: Project) => ({
                 value: proj.id,
@@ -61,7 +61,7 @@ const CreateTeam = () => {
         }
 
         createTeam<ProjectResponse>(
-            apiRequest({
+            {
                 endpoint: `/teams/create`,
                 method: "POST",
                 body: {
@@ -70,7 +70,7 @@ const CreateTeam = () => {
                     createdById: user?.id,
                     updatedById: user?.id,
                 }
-            }),
+            },
             () => {
                 navigate("/teams")
             },

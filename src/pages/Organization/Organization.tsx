@@ -53,10 +53,10 @@ const Organization = () => {
     const { callApi: fetchMembers, loading: membersLoading } = useApi()
     const getMembers = () => {
         fetchMembers<MembersResponse>(
-            apiRequest({
+            {
                 endpoint: `/organizations/get-members/${organization?.id}`,
                 method: "GET",
-            }),
+            },
             (data) => {
                 setMembers(data.members)
             },
@@ -76,7 +76,7 @@ const Organization = () => {
     const { callApi: updateRole, loading: updatingRole } = useApi()
     const handleRoleChange = (newRole: "ORG_MEMBER" | "ORG_ADMIN", userId:number, index: number) => {
         updateRole<Member[]>(
-            apiRequest({
+            {
                 endpoint: `/organizations/update-member-role`,
                 method: "PATCH",
                 body: {
@@ -84,7 +84,7 @@ const Organization = () => {
                     memberId: userId,
                     role: newRole
                 }
-            }),
+            },
             () => {
                 setMembers((prev) => {
                     const updatedMembers = [...prev]
