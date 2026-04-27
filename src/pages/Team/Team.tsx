@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import Loader from '../../components/Loader/Loader'
 import { useNavigate } from 'react-router-dom'
 import { useApiOnLoad } from '../../utils/useApiOnLoad'
-import { apiRequest } from '../../services/api.services'
 import TeamAdminPannel from './TeamAdminPannel'
 
 

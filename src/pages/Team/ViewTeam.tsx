@@ -92,10 +92,10 @@ const ViewTeam = () => {
     const { callApi: fetchTeam, loading: fetchingTeam } = useApi()
     const getTeamDetails = () => {
         fetchTeam<TeamResponse>(
-            apiRequest({
+            {
                 endpoint: `/teams/view-team/${teamId}`,
                 method: "GET",
-            }),
+            },
             (data) => {
                 setTeam(data.team)
                 setTeamMembers(data.teamMembers)
@@ -122,10 +122,10 @@ const ViewTeam = () => {
     const getAvailableMembers = () => {
         setProjectMembers([])
         fetchProjectMembers<ProjectMembersResponse>(
-            apiRequest({
+            {
                 endpoint: `/teams/get-add-team-member-list/${org.id}/${team?.projectId}/${teamId}`,
                 method: "GET",
-            }),
+            },
             (data) => {
                 setProjectMembers(data.members)
             },
@@ -138,7 +138,7 @@ const ViewTeam = () => {
     const { callApi: addMember, loading: addingMember } = useApi()
     const addMemberToTeam = (memberId: number) => {
         addMember<AddTeamMemberResponse>(
-            apiRequest({
+            {
                 endpoint: `/teams/add-member`,
                 method: "POST",
                 body: {
@@ -146,7 +146,7 @@ const ViewTeam = () => {
                     userId: memberId,
                     organizationId: Number(org.id)
                 }
-            }),
+            },
             (data) => {
                 if (!data.available) {
                     alert("User is already member of another team")

@@ -4,7 +4,7 @@ type AlertType = "success" | "error" | "warning" | "confirm";
 
 interface CustomAlertProps {
     type?: AlertType;
-    message: string;
+    message: React.ReactNode;
     show: boolean;
     showCancel?: boolean;
     onOk?: () => void;
@@ -35,7 +35,7 @@ const getHeaderClass = (type: AlertType) => {
         case "warning":
             return "bg-warning text-dark";
         case "confirm":
-            return "bg-primary text-white";
+            return "bg-primary text-white"
         default:
             return "bg-secondary text-white";
     }
@@ -72,7 +72,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
             style={{
                 display: "block",
                 backgroundColor: "rgba(0,0,0,0.5)",
-                zIndex: 1050,
+                zIndex: 1060,
             }}
         >
             <div className="modal-dialog modal-dialog-centered">

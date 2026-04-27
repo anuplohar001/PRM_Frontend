@@ -46,10 +46,10 @@ export default function Project() {
     const { callApi: fetchAllProjects, loading: fetchingAllProjects } = useApi()
     const getAllProjects = () => {
         fetchAllProjects<ProjectResponse>(
-            apiRequest({
+            {
                 endpoint: `/projects/${org.id}`,
                 method: "GET",
-            }),
+            },
             (data) => {
                 setProjects(data.projects)
             },
@@ -62,10 +62,10 @@ export default function Project() {
     const { callApi: fetchMyProjects, loading: fetchingMyProjects } = useApi()
     const getMyProjects = () => {
         fetchMyProjects<ProjectResponse>(
-            apiRequest({
+            {
                 endpoint: `/projects/get-my-projects/${org.id}`,
                 method: "GET",
-            }),
+            },
             (data) => {
                 setProjects(data.projects)
             },
@@ -192,7 +192,7 @@ export default function Project() {
                                         <React.Fragment key={project.id}>
 
                                             <tr>
-                                                <td>
+                                                <td className="px-3">
                                                     {idx + 1}
                                                 </td>
                                                 <td>

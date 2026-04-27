@@ -38,11 +38,11 @@ export default function CreateUser() {
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
         createUser(
-            apiRequest({
+            {
                 endpoint: "/organizations/create-user",
                 method: "POST",
                 body: { ...form, organizationId },
-            }),
+            },
             (response) => {
                 navigate('/organization')
             },

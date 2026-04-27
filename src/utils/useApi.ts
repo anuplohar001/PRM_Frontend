@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { apiRequest, type ApiRequestOptions } from "../services/api.services";
 
 type ApiResponse<T> = {
     message: string;
@@ -10,7 +11,7 @@ export const useApi = () => {
     const [error, setError] = useState<string | null>(null);
 
     const callApi = async <T>(
-        apiCall: Promise<ApiResponse<T>>,
+        apiConfig: ApiRequestOptions,
         onSuccess?: (data: T) => void,
         onError?: (err: any) => void
     ) => {
@@ -18,7 +19,7 @@ export const useApi = () => {
         setError(null);
 
         try {
-            const response = await apiCall;
+            const response: ApiResponse<T> = await apiRequest(apiConfig);
 
             // ✅ extract data here
             onSuccess?.(response.data);

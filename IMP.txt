@@ -1,0 +1,38 @@
+// research about react cascading re reder ❌
+  // useEffect(() => {
+  //   if (!projects.length) return;
+
+  //   const storedId = localStorage.getItem("projectId");
+  //   if (!storedId) return;
+
+  //   const matched =
+  //     projects.find((p) => p.value === storedId) ?? null;
+
+  //   setSelectedProject((prev) => {
+  //     if (prev?.value === matched?.value) return prev; // 🔥 prevent re-render
+  //     return matched;
+  //   });
+  // }, [projects]);
+
+Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\anupl\OneDrive\Desktop\PRM Tool\ProjectManagement\prm-frontend\src\pages\Home\WorkSpace.tsx:62:5
+  60 |       projects.find((p) => p.value === storedId) ?? null;
+  61 |
+> 62 |     setSelectedProject((prev) => {
+     |     ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  63 |       if (prev?.value === matched?.value) return prev; // 🔥 prevent re-render
+  64 |       return matched;
+  65 |     });
+
+
+
+
+
+use semantic HTML tags ❌
