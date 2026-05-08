@@ -39,7 +39,6 @@ const TeamAdminPannel = () => {
     const [projects, setProjects] = useState<Project[]>([])
     const navigate = useNavigate()
     const org = JSON.parse(localStorage.getItem("organization") || "{}")
-    const { showAlert } = useAlert()
 
     const { callApi: fetchProjects, loading } = useApi()
 
@@ -53,11 +52,6 @@ const TeamAdminPannel = () => {
                 setProjects(data.result)
             },
             (err) => {
-                showAlert({
-                    type: "error",
-                    message: err.message,
-                    showCancel: true,
-                })
                 console.error(err.message)
             }
         )

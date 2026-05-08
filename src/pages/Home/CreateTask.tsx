@@ -28,9 +28,13 @@ const CreateTaskForm: React.FC<Props> = ({
     setFormData,
 }) => {
 
-    const [members, setMembers] = useState<Option[]>([])
+    
     const user = JSON.parse(localStorage.getItem("user") || "{}")
-
+    const self: Option = {
+        value: user!.id,
+        label: user!.name
+    }
+    const [members, setMembers] = useState<Option[]>([self])
     const { callApi: fetchMembers, loading: membersLoading } = useApi()
 
     const getProjectMembers = () => {
@@ -52,19 +56,15 @@ const CreateTaskForm: React.FC<Props> = ({
     }
 
     useEffect(() => {
-      if(projectPermissions.includes(Action.ASSIGN_TASK))
-        getProjectMembers()
-      else {
-        const self = [
-            {value: user?.id, label: user?.name}
-        ]
-        setMembers(self)
-      }
+        if (projectPermissions.includes(Action.ASSIGN_TASK)) {
+            getProjectMembers()
+        }            
+
     }, [projectPermissions])
-    
 
 
-    
+
+
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -168,13 +168,13 @@ const CreateTaskForm: React.FC<Props> = ({
                         name="type"
                         value={formData.type}
                         options={[
-                            { label: "Task", value: "TASK" },
-                            { label: "Bug", value: "BUG" },
-                            { label: "Feature", value: "FEATURE" },
-                            { label: "Improvement", value: "IMPROVEMENT" },
-                            { label: "Story", value: "STORY" },
-                            { label: "Subtask", value: "SUBTASK" },
-                            { label: "Epic", value: "EPIC" },
+                            { label: "📝 Task", value: "TASK" },
+                            { label: "🐞 Bug", value: "BUG" },
+                            { label: "✨ Feature", value: "FEATURE" },
+                            { label: "⚡ Improvement", value: "IMPROVEMENT" },
+                            { label: "📖 Story", value: "STORY" },
+                            { label: "🔧 Subtask", value: "SUBTASK" },
+                            { label: "🗂️ Epic", value: "EPIC" },
                         ]}
                         onChange={handleInputChange}
                         required

@@ -1,11 +1,9 @@
 import React, { useState } from 'react'
 import Loader from '../../components/Loader/Loader'
-import Select from 'react-select/base'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useApiOnLoad } from '../../utils/useApiOnLoad'
 import type { Workflow } from '../../utils/types'
 import { useAlert } from '../../components/CustomAlert/AlertContext'
-import { Edit2, Trash2 } from 'react-feather'
 import usePermissions from '../../utils/usePermissions'
 import { useApi } from '../../utils/useApi'
 import OptionsMenu from '../../components/CustomDialogBox/OptionsMenu'
@@ -35,11 +33,6 @@ const ManageWorkflow = () => {
             setWorkflows(data.workflows)
         },
         (err) => {
-            showAlert({
-                type: "error",
-                message: err.message,
-                showCancel: true,
-            })
             console.error(err.message)
         }
       );
@@ -62,11 +55,6 @@ const ManageWorkflow = () => {
             setWorkflows((prev) => prev?.filter((step) => step.id !== workflow.id));
           },
           (err) => {
-            showAlert({
-              type: "error",
-              message: err.message,
-              showCancel: true,
-            })
             console.error(err.message)
           }
         )

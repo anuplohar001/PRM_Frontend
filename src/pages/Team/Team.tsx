@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import Loader from '../../components/Loader/Loader'
 import { useNavigate } from 'react-router-dom'
-import { useApiOnLoad } from '../../utils/useApiOnLoad'
 import TeamAdminPannel from './TeamAdminPannel'
 
 

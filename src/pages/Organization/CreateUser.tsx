@@ -3,6 +3,7 @@ import { apiRequest } from "../../services/api.services"
 import { useNavigate } from "react-router-dom"
 import { useApi } from "../../utils/useApi"
 import Loader from "../../components/Loader/Loader"
+import { useAlert } from "@/components/CustomAlert/AlertContext"
 
 type CreateUserInput = {
     name: string
@@ -15,7 +16,8 @@ type CreateUserInput = {
 export default function CreateUser() {
 
     const navigate = useNavigate()
-    const organizationId = JSON.parse(localStorage.getItem('organization'))?.id
+    const { showAlert } = useAlert()
+    const organizationId = JSON.parse(localStorage.getItem('organization') || "{}")?.id
     const [form, setForm] = useState<CreateUserInput>({
         name: "",
         email: "",
@@ -44,10 +46,15 @@ export default function CreateUser() {
                 body: { ...form, organizationId },
             },
             (response) => {
+                showAlert({
+                    type: "success",
+                    message: "User created Successfully",
+                    showCancel: true,
+                })
                 navigate('/organization')
+
             },
             (err) => {
-                alert(err.message)
                 console.error(err.message)
             }
         )

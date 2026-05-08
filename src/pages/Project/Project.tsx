@@ -177,7 +177,7 @@ export default function Project() {
                             <table className="table mb-0 table-sm font-size-13 table-hover">
                                 <thead className="table-light">
                                     <tr>
-                                        <th>#</th>
+                                        <th className="px-2">#</th>
                                         <th>Project</th>
                                         <th>Organization</th>
                                         <th>Created By</th>

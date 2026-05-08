@@ -4,17 +4,16 @@ import { useApi } from '../../utils/useApi'
 import { useNavigate } from 'react-router-dom'
 import usePermissions from '../../utils/usePermissions'
 import { Action } from '../../utils/getAllPermissions'
+import { Trash2, UserPlus } from 'react-feather'
+import type { User } from '@/utils/types'
+import { useAlert } from '@/components/CustomAlert/AlertContext'
 
 type Member = {
     id: number;
     role: "ORG_OWNER" | "ORG_MEMBER" | "ORG_ADMIN";
     organizationId: number,
     userId: number,
-    user: {
-        id: number,
-        email: string,
-        name: string
-    };
+    user: User;
     addedBy: {
         email: string,
         name: string
@@ -42,7 +41,7 @@ const Organization = () => {
     const [members, setMembers] = useState<Member[]>([]);
     const user = JSON.parse(localStorage.getItem("user") || "{}")
     const navigate = useNavigate()
-
+    const {showAlert} = useAlert()
     const {
         permissions,
         loading: permissionsLoading,
@@ -101,7 +100,16 @@ const Organization = () => {
         )
     };
     // console.log(permissions)
-
+const handleDeleteUser = (user: User) => {
+    showAlert({
+      type: "warning",
+      message: (<>
+        Are you sure you want to delete <strong> {user.name} </strong> from {organization.name} ?
+      </>),
+      showCancel: true,
+    //   onOk: () => user.id && deleteTask(task.id)
+    });
+  }
     return (
         <div className='row'>
             <div className="col-12 mb-4">
@@ -145,7 +153,7 @@ const Organization = () => {
                                 <button className='btn-primary btn btn-sm'
                                     onClick={() => navigate('/create-user')}
                                 >
-                                    Create User +
+                                   <UserPlus className='text-white me-1' size={15}/> Create User
                                 </button>
                             </div>
                         </div>
@@ -154,7 +162,7 @@ const Organization = () => {
                             <table className="table mb-0 table-sm font-size-13">
                                 <thead className="table-light">
                                     <tr>
-                                        <th>Name</th>
+                                        <th className='ps-4'>Name</th>
                                         <th>Email</th>
                                         <th>Role</th>
                                         <th>Added By</th>
@@ -163,34 +171,58 @@ const Organization = () => {
                                 </thead>
 
                                 <tbody>
-                                    {members.map((usr, index) => (
-                                        <tr key={usr?.id}>
-                                            <td>{usr?.user?.name}</td>
-                                            <td>{usr?.user?.email}</td>
-                                            <td className='font-size-13'>
-                                                {usr.role === "ORG_OWNER" ? (<span>{usr.role}</span>) : (
-                                                    <select
-                                                        className=" font-size-13"
-                                                        value={usr?.role}
-                                                        onChange={(e) => handleRoleChange(e.target.value, usr.userId, index)}
+                                    {members.map((usr, index) => {
+                                        const isCurrentUser = usr.user.id === user?.id
 
-                                                    >
-                                                        <option className='font-size-13' value="ORG_MEMBER">ORG_MEMBER</option>
-                                                        <option className='font-size-13' value="ORG_ADMIN">ORG_ADMIN</option>
-                                                    </select>)}
-                                            </td>
-                                            <td>{usr?.addedBy?.name}</td>
-                                            <td>
-                                                <div className='d-flex gap-2'>
+                                        let rowClass = ""
 
-                                                    <button
-                                                        className='btn btn-danger btn-sm'
-                                                        disabled={usr?.user?.id === user.id}
-                                                    >Remove</button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                        if (isCurrentUser) {
+                                            rowClass = "table-primary"          // highest priority
+                                        } else if (usr.role === "ORG_OWNER") {
+                                            rowClass = "table-warning"
+                                        } else if (usr.role === "ORG_ADMIN") {
+                                            rowClass = "table-info"
+                                        }
+
+                                        return (
+                                            <tr key={usr?.id} className={rowClass}>
+                                                <td className='ps-4'>{usr?.user?.name}</td>
+                                                <td>{usr?.user?.email}</td>
+
+                                                <td className='font-size-13'>
+                                                    {usr.role === "ORG_OWNER" || isCurrentUser ? (
+                                                        <span>{usr.role}</span>
+                                                    ) : (
+                                                        <select
+                                                            className="font-size-13"
+                                                            value={usr?.role}
+                                                            onChange={(e) =>
+                                                                handleRoleChange(e.target.value, usr.user?.id, index)
+                                                            }
+                                                        >
+                                                            <option value="ORG_MEMBER">ORG_MEMBER</option>
+                                                            <option value="ORG_ADMIN">ORG_ADMIN</option>
+                                                        </select>
+                                                    )}
+                                                </td>
+
+                                                <td>{usr?.addedBy?.name}</td>
+
+                                                <td>
+                                                    <div className='d-flex gap-2'>
+                                                        <button
+                                                            className='btn btn-sm border-0'
+                                                            disabled={isCurrentUser}
+                                                            type='button'
+                                                            onClick={()=> handleDeleteUser(usr?.user)}
+                                                        >
+                                                            <Trash2 className='text-danger' size={15} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
                                 </tbody>
 
                             </table>

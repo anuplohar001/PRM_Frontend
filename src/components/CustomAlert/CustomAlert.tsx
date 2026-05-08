@@ -1,4 +1,5 @@
 import React from "react";
+import { CheckCircle, XCircle, AlertTriangle, Info } from "react-feather";
 
 type AlertType = "success" | "error" | "warning" | "confirm";
 
@@ -40,19 +41,33 @@ const getHeaderClass = (type: AlertType) => {
             return "bg-secondary text-white";
     }
 };
-
-const getAlertClass = (type: AlertType) => {
+const getMessageClass = (type: AlertType) => {
     switch (type) {
         case "success":
-            return "alert alert-success";
+            return "text-success";
         case "error":
-            return "alert alert-danger";
+            return "text-danger";
         case "warning":
-            return "alert alert-warning";
+            return "text-muted";
         case "confirm":
-            return "alert alert-primary";
+            return "text-primary";
         default:
-            return "alert alert-secondary";
+            return "text-secondary";
+    }
+};
+
+const getAlertIcon = (type: AlertType) => {
+    switch (type) {
+        case "success":
+            return <CheckCircle size={24} className="text-white" />;
+        case "error":
+            return <XCircle size={24} className="text-white" />;
+        case "warning":
+            return <AlertTriangle size={24} className="text-white" />;
+        case "confirm":
+            return <Info size={24} className="text-white" />;
+        default:
+            return <Info size={24} className="text-white" />;
     }
 };
 
@@ -79,19 +94,19 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
                 <div className="modal-content">
 
                     {/* ✅ Header */}
-                    <div className={`modal-header ${getHeaderClass(type)}`}>
-                        <h5 className="modal-title text-capitalize">
-                            {type}
+                    <div className={`modal-header p-2 ${getHeaderClass(type)}`}>
+                        <h5 className="text-capitalize d-flex gap-2">
+                          {getAlertIcon(type)}  {type}
                         </h5>
                     </div>
 
                     {/* ✅ Body */}
-                    <div className="modal-body">
-                        <p className="mb-0">{message}</p>
+                    <div className="modal-body text-center">
+                        <p className={`mb-0 fw-semibold ${getMessageClass(type)}`}>{message}</p>
                     </div>
 
                     {/* ✅ Footer */}
-                    <div className="modal-footer">
+                    <div className="modal-footer justify-content-center">
                         {showCancel && (
                             <button
                                 className="btn btn-secondary btn-sm"

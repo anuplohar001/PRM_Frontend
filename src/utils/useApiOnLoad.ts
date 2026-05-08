@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiRequest, type ApiRequestOptions } from "../services/api.services";
+import { useAlert } from "@/components/CustomAlert/AlertContext";
 
 type ApiResponse<T> = {
     message: string;
@@ -13,6 +14,7 @@ export const useApiOnLoad = <T>(
 ) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { showAlert } = useAlert()
 
     const callApi = async (
         config: ApiRequestOptions,
@@ -28,6 +30,11 @@ export const useApiOnLoad = <T>(
             return response.data;
         } catch (err: any) {
             const message = err?.message || "Something went wrong";
+            showAlert({
+                type: "error",
+                message: message,
+                showCancel: true,
+            })
             setError(message);
             errorCb?.(err);
         } finally {

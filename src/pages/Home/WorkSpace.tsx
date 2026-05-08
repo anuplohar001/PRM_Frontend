@@ -36,7 +36,21 @@ type CreateTasksResponse = {
 
 export default function WorkspaceHome() {
 
-
+  const priorityMap = {
+    LOW: "🟢",
+    MEDIUM: "🟡",
+    HIGH: "🔴",
+    URGENT: "🚨"
+  };
+  const typeMap = {
+    TASK: "📝",
+    BUG: "🐞",
+    FEATURE: "✨",
+    IMPROVEMENT: "⚡",
+    STORY: "📖",
+    SUBTASK: "🔧",
+    EPIC: "🗂️"
+  };
   const navigate = useNavigate()
   const org = JSON.parse(localStorage.getItem('organization') || "{}")
   const user = JSON.parse(localStorage.getItem('user') || "{}")
@@ -129,11 +143,7 @@ export default function WorkspaceHome() {
         setWorkFlows(data.workflows)
       },
       (err) => {
-        showAlert({
-          type: "error",
-          message: err.message,
-          showCancel: true,
-        })
+        
         console.error(err.message)
       }
     )
@@ -165,11 +175,6 @@ export default function WorkspaceHome() {
         setWorkFlows((prev) => prev?.filter((step) => step.id !== workflow.id));
       },
       (err) => {
-        showAlert({
-          type: "error",
-          message: err.message,
-          showCancel: true,
-        })
         console.error(err.message)
       }
     )
@@ -210,11 +215,6 @@ export default function WorkspaceHome() {
 
       },
       (err) => {
-        showAlert({
-          type: "error",
-          message: err.message,
-          showCancel: true,
-        });
         console.error(err.message);
       }
     );
@@ -247,11 +247,6 @@ export default function WorkspaceHome() {
 
       },
       (err) => {
-        showAlert({
-          type: "error",
-          message: err.message,
-          showCancel: true,
-        });
         console.error(err.message);
       }
     );
@@ -279,11 +274,6 @@ export default function WorkspaceHome() {
         );
       },
       (err) => {
-        showAlert({
-          type: "error",
-          message: err.message,
-          showCancel: true,
-        });
         console.error(err.message);
       }
     );
@@ -301,7 +291,7 @@ export default function WorkspaceHome() {
       statusId: currentWorkflow?.id,
       priority: taskFormData.priority,
       type: taskFormData.type,
-      assignedTo: taskFormData.assignedTo ? taskFormData.assignedTo : user?.id,
+      assignedTo: taskFormData.assignedTo ? Number(taskFormData.assignedTo) : null,
     }
 
     if (taskAction === "Create")
@@ -359,6 +349,9 @@ export default function WorkspaceHome() {
           />
         </div>
       </div>
+      <div>
+        <h6>Selected Project : <span className="bg-success px-2 py-1 rounded-2 text-white">{selectedProject?.label}</span> </h6>
+      </div>
 
       {projectPermissions?.includes("CREATE_WORKFLOW") && (
         <div className="row mt-3 d-flex justify-content-end">
@@ -375,7 +368,7 @@ export default function WorkspaceHome() {
 
       {/* map workflows here  */}
 
-      <div className="mt-3" style={{ display: "flex", gap: "16px" }}>
+      <div className="mt-3" style={{ display: "flex", gap: "16px", width:"70vw", overflowX:"auto" }}>
         {workflows?.map((step) => {
           const stepTasks = tasks?.filter(
             (task) => task?.statusId === step.id
@@ -385,7 +378,7 @@ export default function WorkspaceHome() {
             <div
               key={step.id}
               style={{
-                width: "300px",
+                minWidth: "250px",
                 minHeight: "200px",
                 border: "1px solid #ccc",
                 borderRadius: "8px",
@@ -456,8 +449,12 @@ export default function WorkspaceHome() {
                           />
                         </div>
                       </div>
-                      <div style={{ fontSize: "12px", color: "#777" }}>
-                        {task.priority}
+                      <div className="d-flex justify-content-between" style={{ fontSize: "12px", color: "#777" }}>
+                        {task.priority} 
+                        <span title={task.type} style={{cursor:"pointer", fontSize:"14px"}}>
+
+                          {(typeMap[task.type] || "❓")}
+                        </span>
                       </div>
                     </div>
                   ))

@@ -85,7 +85,6 @@ const ViewTeam = () => {
     const [fullTeamAccess, setFullTeamAccess] = useState<boolean>(false)
     const navigate = useNavigate()
     const { id } = useParams()
-    const { showAlert } = useAlert()
     const org = JSON.parse(localStorage.getItem('organization') || "{}")
     const teamId = Number(id)
     const { permissions, loading: permissionsLoading } = usePermissions(teamId, "TEAM");
@@ -103,11 +102,6 @@ const ViewTeam = () => {
             },
             (err) => {
                 console.error(err.message)
-                showAlert({
-                    type: "error",
-                    message: err.message,
-                    showCancel: true,
-                })
             }
         )
     }
