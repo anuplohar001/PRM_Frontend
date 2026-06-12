@@ -1,0 +1,16 @@
+.custom-loader-overlay {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loader-spinner {
+    width: 12rem;
+    height: 12rem;
+    border-style: dotted;
+}

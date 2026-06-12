@@ -1,0 +1,30 @@
+.project-title-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+
+    padding: 0;
+    margin: 0;
+}
+
+.project-title-input:focus,
+.project-title-input:focus-visible,
+.project-title-input:active {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.project-title-input::-moz-focus-inner {
+    border: 0;
+}
+
+.testborder {
+    border: 2px solid white;
+}
